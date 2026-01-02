@@ -12,6 +12,21 @@ export const GAME_RTP = {
 
 export type GameType = keyof typeof GAME_RTP
 
+// ========== MONEY FORMATTING ==========
+// All money should be whole dollars, no cents, no commas
+export function formatMoney(amount: number): string {
+    const whole = Math.floor(Math.abs(amount))
+    const sign = amount < 0 ? '-' : ''
+    return `${sign}$${whole}`
+}
+
+// Ensure amount is at least $1 and whole
+export function validateBetAmount(amount: number, balance: number): number {
+    const whole = Math.floor(amount)
+    return Math.max(1, Math.min(whole, Math.floor(balance)))
+}
+
+// ========== AVIATOR ==========
 // Aviator crash point calculation
 // Uses exponential distribution to favor low crash points
 export function generateAviatorCrashPoint(): number {
@@ -25,6 +40,7 @@ export function generateAviatorCrashPoint(): number {
     return Math.min(100, Math.round(crashPoint * 100) / 100)
 }
 
+// ========== DICE ==========
 // Dice game multiplier calculation
 // Lower win chance = higher payout
 export function calculateDiceMultiplier(winChance: number): number {
@@ -38,11 +54,13 @@ export function rollDice(): number {
     return Math.floor(Math.random() * 100) + 1
 }
 
+// ========== COINFLIP ==========
 // Coinflip: simple 50/50
 export function flipCoin(): 'heads' | 'tails' {
     return Math.random() < 0.5 ? 'heads' : 'tails'
 }
 
+// ========== MINES ==========
 // Mines: calculate multiplier based on revealed tiles
 export function calculateMinesMultiplier(
     totalTiles: number,
@@ -78,16 +96,16 @@ export function generateMinesGrid(gridSize: number, minesCount: number): boolean
     return grid
 }
 
-// Wheel segments with probabilities
+// ========== WHEEL OF FORTUNE ==========
+// Wheel segments with WHOLE NUMBER multipliers only
 export const WHEEL_SEGMENTS = [
-    { multiplier: 0, probability: 0.15, color: '#e74c3c', label: '0x' },
-    { multiplier: 0.5, probability: 0.20, color: '#c0392b', label: '0.5x' },
-    { multiplier: 1, probability: 0.25, color: '#9b59b6', label: '1x' },
-    { multiplier: 1.5, probability: 0.15, color: '#8e44ad', label: '1.5x' },
-    { multiplier: 2, probability: 0.12, color: '#3498db', label: '2x' },
-    { multiplier: 3, probability: 0.07, color: '#2980b9', label: '3x' },
-    { multiplier: 5, probability: 0.04, color: '#27ae60', label: '5x' },
-    { multiplier: 10, probability: 0.02, color: '#f1c40f', label: '10x' }
+    { multiplier: 0, probability: 0.20, color: '#dc2626', label: '0x' },
+    { multiplier: 1, probability: 0.30, color: '#7c3aed', label: '1x' },
+    { multiplier: 2, probability: 0.25, color: '#2563eb', label: '2x' },
+    { multiplier: 3, probability: 0.12, color: '#0891b2', label: '3x' },
+    { multiplier: 5, probability: 0.08, color: '#059669', label: '5x' },
+    { multiplier: 10, probability: 0.04, color: '#d97706', label: '10x' },
+    { multiplier: 20, probability: 0.01, color: '#eab308', label: '20x' }
 ] as const
 
 // Spin wheel and get result

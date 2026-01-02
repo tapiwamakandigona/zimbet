@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { spinWheel, WHEEL_SEGMENTS, getRandomMessage, createSession, updateSession } from '../../lib/gameEngine'
+import { spinWheel, WHEEL_SEGMENTS, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
 import './Wheel.css'
 
@@ -18,9 +18,12 @@ export function Wheel() {
     const [session, setSession] = useState<GameSession>(createSession())
     const wheelRef = useRef<HTMLDivElement>(null)
 
+    const SEGMENT_COUNT = WHEEL_SEGMENTS.length
+    const SEGMENT_ANGLE = 360 / SEGMENT_COUNT
+
     const spin = async () => {
         if (!zimBetAccount || betAmount > zimBetAccount.balance || isSpinning) {
-            setMessage('Insufficient balance!')
+            setMessage('Not enough balance!')
             return
         }
 
@@ -28,22 +31,24 @@ export function Wheel() {
         setResult(null)
         setMessage('')
 
-        // Deduct bet
+        // Deduct bet (whole dollars)
+        const wholeBet = Math.floor(betAmount)
         await supabase
             .from('zimbet_accounts')
-            .update({ balance: zimBetAccount.balance - betAmount })
+            .update({ balance: Math.floor(zimBetAccount.balance - wholeBet) })
             .eq('id', zimBetAccount.id)
 
         // Get result
         const spinResult = spinWheel()
 
         // Calculate rotation
-        // Each segment is 45 degrees (360 / 8 segments)
         const segmentIndex = WHEEL_SEGMENTS.findIndex(s => s.multiplier === spinResult.multiplier)
-        const segmentAngle = segmentIndex * (360 / WHEEL_SEGMENTS.length)
-        // Add extra spins for dramatic effect + position to stop at segment
-        const extraSpins = 5 * 360 // 5 full rotations
-        const finalRotation = rotation + extraSpins + (360 - segmentAngle) + 22.5 // +22.5 to center on segment
+        // Add extra spins + stop at winning segment center
+        const extraSpins = 5 * 360
+        // Rotation needed to bring segment to top (pointer position)
+        const targetAngle = segmentIndex * SEGMENT_ANGLE
+        // Add half segment to center, then offset for the segment being at top not right
+        const finalRotation = rotation + extraSpins + (360 - targetAngle) - (SEGMENT_ANGLE / 2)
 
         setRotation(finalRotation)
 
@@ -51,37 +56,37 @@ export function Wheel() {
         setTimeout(async () => {
             setResult(spinResult)
 
-            const winnings = betAmount * spinResult.multiplier
+            const winnings = Math.floor(wholeBet * spinResult.multiplier)
             const isWin = spinResult.multiplier > 0
 
             if (isWin) {
                 await supabase
                     .from('zimbet_accounts')
                     .update({
-                        balance: zimBetAccount.balance - betAmount + winnings,
+                        balance: Math.floor(zimBetAccount.balance - wholeBet + winnings),
                         total_wins: zimBetAccount.total_wins + 1,
-                        total_earnings: zimBetAccount.total_earnings + (winnings - betAmount)
+                        total_earnings: Math.floor(zimBetAccount.total_earnings + (winnings - wholeBet))
                     })
                     .eq('id', zimBetAccount.id)
 
                 setMessage(spinResult.multiplier >= 5 ? getRandomMessage('bigWin') : getRandomMessage('win'))
-                setSession(updateSession(session, betAmount, winnings, true))
+                setSession(updateSession(session, wholeBet, winnings, true))
             } else {
                 await supabase
                     .from('zimbet_accounts')
                     .update({
                         total_losses: zimBetAccount.total_losses + 1,
-                        total_earnings: zimBetAccount.total_earnings - betAmount
+                        total_earnings: Math.floor(zimBetAccount.total_earnings - wholeBet)
                     })
                     .eq('id', zimBetAccount.id)
 
                 setMessage(getRandomMessage('lose'))
-                setSession(updateSession(session, betAmount, 0, false))
+                setSession(updateSession(session, wholeBet, 0, false))
             }
 
             setIsSpinning(false)
             refreshAccount()
-        }, 4000) // Match CSS animation duration
+        }, 4000)
     }
 
     return (
@@ -91,11 +96,11 @@ export function Wheel() {
                     ← Back
                 </button>
                 <div className="game-title">
-                    <span className="game-icon">🎡</span>
-                    <span>Wheel</span>
+                    <span className="game-icon">🎰</span>
+                    <span>Fortune Wheel</span>
                 </div>
                 <div className="balance">
-                    ${zimBetAccount?.balance.toFixed(2) || '0.00'}
+                    {formatMoney(zimBetAccount?.balance || 0)}
                 </div>
             </header>
 
@@ -116,9 +121,10 @@ export function Wheel() {
                                 key={index}
                                 className="wheel-segment"
                                 style={{
-                                    transform: `rotate(${index * (360 / WHEEL_SEGMENTS.length)}deg)`,
+                                    '--segment-angle': `${SEGMENT_ANGLE}deg`,
+                                    '--segment-rotation': `${index * SEGMENT_ANGLE}deg`,
                                     background: segment.color
-                                }}
+                                } as React.CSSProperties}
                             >
                                 <span className="segment-label">{segment.label}</span>
                             </div>
@@ -132,8 +138,8 @@ export function Wheel() {
                         <span className="result-mult">{result.label}</span>
                         <span className="result-amount">
                             {result.multiplier > 0
-                                ? `+$${(betAmount * result.multiplier - betAmount).toFixed(2)}`
-                                : `-$${betAmount.toFixed(2)}`
+                                ? `+${formatMoney(Math.floor(betAmount * result.multiplier) - betAmount)}`
+                                : formatMoney(-betAmount)
                             }
                         </span>
                     </div>
@@ -160,7 +166,7 @@ export function Wheel() {
                     </div>
                 </div>
 
-                {/* Multiplier Info */}
+                {/* Multiplier Legend */}
                 <div className="multipliers-info">
                     {WHEEL_SEGMENTS.map((seg, i) => (
                         <div key={i} className="mult-chip" style={{ background: seg.color }}>
@@ -174,7 +180,7 @@ export function Wheel() {
                     onClick={spin}
                     disabled={isSpinning || betAmount <= 0 || betAmount > (zimBetAccount?.balance || 0)}
                 >
-                    {isSpinning ? 'Spinning...' : `Spin for $${betAmount}`}
+                    {isSpinning ? 'Spinning...' : `Spin for ${formatMoney(betAmount)}`}
                 </button>
             </div>
 
@@ -187,7 +193,7 @@ export function Wheel() {
                 <div className="stat">
                     <span className="stat-label">Profit</span>
                     <span className={`stat-value ${session.totalWon - session.totalWagered >= 0 ? 'positive' : 'negative'}`}>
-                        ${(session.totalWon - session.totalWagered).toFixed(2)}
+                        {formatMoney(session.totalWon - session.totalWagered)}
                     </span>
                 </div>
             </div>
