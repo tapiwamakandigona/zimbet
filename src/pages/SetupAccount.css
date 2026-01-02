@@ -9,7 +9,7 @@
 }
 
 .setup-container {
-    max-width: 400px;
+    max-width: 420px;
     width: 100%;
     animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -28,29 +28,29 @@
 
 .setup-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
 }
 
 .setup-icon {
     font-size: 4rem;
     margin-bottom: 16px;
-    animation: float 3s ease-in-out infinite;
+    animation: bounce 2s ease-in-out infinite;
 }
 
-@keyframes float {
+@keyframes bounce {
 
     0%,
     100% {
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 
     50% {
-        transform: translateY(-10px);
+        transform: translateY(-10px) scale(1.05);
     }
 }
 
 .setup-header h1 {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     margin: 0 0 8px;
 }
@@ -58,27 +58,28 @@
 .setup-header p {
     color: #94a3b8;
     margin: 0;
+    font-size: 1rem;
 }
 
 .bonus-card {
-    background: linear-gradient(135deg, #22c55e, #15803d);
-    border-radius: 16px;
-    padding: 24px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-radius: 20px;
+    padding: 28px;
     text-align: center;
-    margin-bottom: 32px;
-    box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
+    margin-bottom: 28px;
+    box-shadow: 0 15px 40px rgba(34, 197, 94, 0.35);
     position: relative;
     overflow: hidden;
 }
 
-.bonus-card::after {
+.bonus-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: -100%;
     width: 200%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
     animation: shine 3s infinite;
 }
 
@@ -96,19 +97,28 @@
     }
 }
 
+.bonus-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+}
+
 .bonus-amount {
-    font-size: 3rem;
+    font-size: 3.5rem;
     font-weight: 900;
     color: white;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    line-height: 1;
 }
 
 .bonus-label {
     color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 0.95rem;
+    margin-top: 8px;
 }
 
 .setup-form {
@@ -119,11 +129,16 @@
     border-radius: 20px;
 }
 
+.form-group {
+    margin-bottom: 20px;
+}
+
 .form-group label {
     display: block;
     color: #cbd5e1;
     margin-bottom: 12px;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .input-prefix-group {
@@ -138,7 +153,7 @@
 
 .input-prefix-group:focus-within {
     border-color: #22c55e;
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
 }
 
 .prefix {
@@ -158,30 +173,41 @@
     outline: none;
 }
 
+.input-prefix-group input::placeholder {
+    color: #475569;
+}
+
 .hint {
     font-size: 0.8rem;
     color: #64748b;
     margin-top: 8px;
+    margin-bottom: 0;
 }
 
 .error-msg {
     color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
-    padding: 12px;
-    border-radius: 8px;
-    margin: 16px 0;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
     font-size: 0.9rem;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.error-msg::before {
+    content: '⚠️';
 }
 
 .btn-setup {
     width: 100%;
-    margin-top: 24px;
     background: white;
     color: #0f172a;
     border: none;
-    padding: 16px;
-    border-radius: 12px;
+    padding: 18px;
+    border-radius: 14px;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
@@ -190,10 +216,21 @@
 
 .btn-setup:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 15px 30px rgba(255, 255, 255, 0.15);
 }
 
 .btn-setup:disabled {
-    opacity: 0.7;
-    cursor: wait;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.setup-footer {
+    text-align: center;
+    margin-top: 24px;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.setup-footer p {
+    margin: 0;
 }

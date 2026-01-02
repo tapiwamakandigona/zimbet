@@ -1,9 +1,12 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEffect, useRef } from 'react'
+import { useAuth } from '../context/AuthContext'
 import './Landing.css'
 
 export function Landing() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const { user, zimBetAccount, loading } = useAuth()
+  const navigate = useNavigate()
 
   // Particle System
   useEffect(() => {
@@ -16,16 +19,16 @@ export function Landing() {
     let height = canvas.height = window.innerHeight
 
     const particles: { x: number, y: number, vx: number, vy: number, size: number, alpha: number }[] = []
-    const particleCount = Math.min(100, (width * height) / 10000)
+    const particleCount = Math.min(80, (width * height) / 15000)
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.5,
-        vy: (Math.random() - 0.5) * 0.5,
-        size: Math.random() * 2,
-        alpha: Math.random() * 0.5 + 0.1
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        size: Math.random() * 2 + 0.5,
+        alpha: Math.random() * 0.4 + 0.1
       })
     }
 
@@ -36,7 +39,7 @@ export function Landing() {
       ctx.fillRect(0, 0, width, height)
 
       // Draw connections
-      ctx.strokeStyle = 'rgba(255, 215, 0, 0.05)'
+      ctx.strokeStyle = 'rgba(226, 51, 51, 0.04)'
       ctx.lineWidth = 1
 
       for (let i = 0; i < particles.length; i++) {
@@ -49,7 +52,7 @@ export function Landing() {
         if (p.y < 0) p.y = height
         if (p.y > height) p.y = 0
 
-        ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`
+        ctx.fillStyle = `rgba(226, 51, 51, ${p.alpha})`
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
         ctx.fill()
@@ -60,7 +63,7 @@ export function Landing() {
           const dx = p.x - p2.x
           const dy = p.y - p2.y
           const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 150) {
+          if (dist < 120) {
             ctx.beginPath()
             ctx.moveTo(p.x, p.y)
             ctx.lineTo(p2.x, p2.y)
@@ -85,6 +88,27 @@ export function Landing() {
     }
   }, [])
 
+  // Handle card click - redirect to login or game
+  const handleGameClick = (gameLink: string) => {
+    if (user && zimBetAccount) {
+      navigate(gameLink)
+    } else {
+      navigate('/login')
+    }
+  }
+
+  // Button text based on auth state
+  const getCtaText = () => {
+    if (loading) return 'Loading...'
+    if (user && zimBetAccount) return 'Go to Dashboard'
+    return 'Play Now'
+  }
+
+  const getCtaLink = () => {
+    if (user && zimBetAccount) return '/dashboard'
+    return '/login'
+  }
+
   return (
     <div className="landing-page">
       <canvas ref={canvasRef} className="bg-canvas" />
@@ -94,39 +118,39 @@ export function Landing() {
         <section className="hero">
           <div className="hero-content">
             <div className="hero-badge pulse-glow">
-              <span>🎰</span> Premium Crypto Casino
+              <span>🎰</span> Provably Fair Gaming
             </div>
             <h1>
               ZimBet <span className="highlight-text">Casino</span>
             </h1>
             <p className="hero-sub">
-              The world's most advanced provably fair gambling platform.<br />
-              Instant payouts via <strong>ZimPay</strong>.
+              Experience the thrill of fair gaming with instant payouts.<br />
+              Powered by <strong>ZimPay</strong>.
             </p>
 
             <div className="cta-group">
-              <Link to="/login" className="btn btn-primary btn-lg glow">
-                <span>🚀</span> Play Now
+              <Link to={getCtaLink()} className="btn btn-primary btn-lg glow">
+                <span>🚀</span> {getCtaText()}
               </Link>
               <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg">
-                Deposit via ZimPay
+                Get ZimPay
               </a>
             </div>
 
             <div className="hero-stats">
               <div className="stat">
-                <span className="val">1.2M+</span>
-                <span className="lbl">Bets Placed</span>
+                <span className="val">6</span>
+                <span className="lbl">Games</span>
               </div>
               <div className="divider"></div>
               <div className="stat">
-                <span className="val">$500k</span>
+                <span className="val">$100</span>
+                <span className="lbl">Free Bonus</span>
+              </div>
+              <div className="divider"></div>
+              <div className="stat">
+                <span className="val">Instant</span>
                 <span className="lbl">Payouts</span>
-              </div>
-              <div className="divider"></div>
-              <div className="stat">
-                <span className="val">24/7</span>
-                <span className="lbl">Live Support</span>
               </div>
             </div>
           </div>
@@ -135,22 +159,22 @@ export function Landing() {
         {/* Ticker */}
         <div className="ticker-wrap">
           <div className="ticker-track">
-            <span className="tick win">🔥 User123 won $540 in Aviator</span>
-            <span className="tick">💎 1,024 Players Online</span>
-            <span className="tick win">🎰 BigWin99 hit 50x on Wheel</span>
-            <span className="tick">🚀 New Game: Plinko Added!</span>
-            <span className="tick win">🔥 User123 won $540 in Aviator</span>
-            <span className="tick">💎 1,024 Players Online</span>
-            <span className="tick win">🎰 BigWin99 hit 50x on Wheel</span>
-            <span className="tick">🚀 New Game: Plinko Added!</span>
+            <span className="tick win">🔥 New: Plinko game added!</span>
+            <span className="tick">🎁 Get $100 FREE when you sign up</span>
+            <span className="tick win">💎 Mines: Uncover gems, multiply bets</span>
+            <span className="tick">✈️ Aviator: Real-time multiplayer</span>
+            <span className="tick win">🔥 New: Plinko game added!</span>
+            <span className="tick">🎁 Get $100 FREE when you sign up</span>
+            <span className="tick win">💎 Mines: Uncover gems, multiply bets</span>
+            <span className="tick">✈️ Aviator: Real-time multiplayer</span>
           </div>
         </div>
 
         {/* Game Grid */}
         <section className="games-grid-section">
-          <h2>Premium Games</h2>
+          <h2>Featured Games</h2>
           <div className="grid">
-            <div className="card aviator-card tilt">
+            <div className="card aviator-card tilt" onClick={() => handleGameClick('/casino/aviator')}>
               <div className="card-bg"></div>
               <div className="card-content">
                 <div className="card-icon">✈️</div>
@@ -159,7 +183,7 @@ export function Landing() {
                 <span className="badge live">● LIVE</span>
               </div>
             </div>
-            <div className="card mines-card tilt">
+            <div className="card mines-card tilt" onClick={() => handleGameClick('/casino/mines')}>
               <div className="card-bg"></div>
               <div className="card-content">
                 <div className="card-icon">💎</div>
@@ -167,7 +191,7 @@ export function Landing() {
                 <p>Uncover Gems. Multiply Bets.</p>
               </div>
             </div>
-            <div className="card wheel-card tilt">
+            <div className="card wheel-card tilt" onClick={() => handleGameClick('/casino/wheel')}>
               <div className="card-bg"></div>
               <div className="card-content">
                 <div className="card-icon">🎡</div>
@@ -175,7 +199,7 @@ export function Landing() {
                 <p>Spin to Win. 50x Jackpots.</p>
               </div>
             </div>
-            <div className="card plinko-card tilt">
+            <div className="card plinko-card tilt" onClick={() => handleGameClick('/casino/plinko')}>
               <div className="card-bg"></div>
               <div className="card-content">
                 <div className="card-icon">🎯</div>
@@ -196,7 +220,7 @@ export function Landing() {
                 <span className="logo-icon">🎰</span>
                 <span className="logo-text">ZimBet</span>
               </div>
-              <p>A premium casino simulation demonstrating modern web capabilities.</p>
+              <p>A premium casino simulation built to demonstrate modern web development.</p>
 
               <div className="social-links">
                 <a href="https://github.com/tapiwamakandigona" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
@@ -204,9 +228,6 @@ export function Landing() {
                 </a>
                 <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Portfolio">
                   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg>
-                </a>
-                <a href="mailto:silentics.org@gmail.com" className="social-icon" aria-label="Email">
-                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
                 </a>
               </div>
             </div>
@@ -224,7 +245,7 @@ export function Landing() {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>© {new Date().getFullYear()} ZimBet • Designed & Built with 💙 by <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Tapiwa Makandigona</a></p>
+            <p>© {new Date().getFullYear()} ZimBet • Built with 💙 by <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Tapiwa Makandigona</a></p>
           </div>
         </footer>
       </div>

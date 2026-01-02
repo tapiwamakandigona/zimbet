@@ -7,6 +7,7 @@
     background: #0f172a;
     position: relative;
     overflow: hidden;
+    padding: 20px;
 }
 
 /* Background Effects */
@@ -15,7 +16,7 @@
     position: absolute;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(226, 51, 51, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(226, 51, 51, 0.15) 0%, transparent 70%);
     top: -100px;
     left: -100px;
     border-radius: 50%;
@@ -27,7 +28,7 @@
     position: absolute;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
     bottom: -50px;
     right: -50px;
     border-radius: 50%;
@@ -49,7 +50,6 @@
 .login-container {
     width: 100%;
     max-width: 440px;
-    padding: 20px;
     position: relative;
     z-index: 10;
     animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -138,7 +138,6 @@
     font-size: 1rem;
     transition: all 0.2s;
     box-sizing: border-box;
-    /* Fix width overflow */
 }
 
 .form-group input:focus {
@@ -146,6 +145,37 @@
     border-color: #e23333;
     box-shadow: 0 0 0 4px rgba(226, 51, 51, 0.15);
     background: rgba(15, 23, 42, 0.9);
+}
+
+.form-group input::placeholder {
+    color: #475569;
+}
+
+/* Password Toggle */
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-input-wrapper input {
+    padding-right: 50px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.password-toggle:hover {
+    opacity: 1;
 }
 
 /* Checkbox */
@@ -167,8 +197,7 @@
     width: 20px;
     height: 20px;
     accent-color: #e23333;
-    padding: 0;
-    background: transparent;
+    cursor: pointer;
 }
 
 .btn-primary {
@@ -231,6 +260,17 @@
 .register-link a:hover {
     color: #f59e0b;
     text-decoration: underline;
+}
+
+.disclaimer {
+    text-align: center;
+    margin-top: 24px;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.disclaimer p {
+    margin: 0;
 }
 
 /* Animations */

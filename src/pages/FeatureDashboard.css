@@ -38,9 +38,14 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    cursor: pointer;
 }
 
-.fd-brand span {
+.fd-brand-icon {
+    font-size: 1.8rem;
+}
+
+.fd-brand span:not(.fd-brand-icon) {
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -1px;
@@ -54,6 +59,7 @@
     flex-direction: column;
     gap: 4px;
     padding: 0 12px;
+    flex: 1;
 }
 
 .fd-nav-item {
@@ -85,8 +91,15 @@
     color: var(--accent-primary);
 }
 
+.fd-nav-item.logout {
+    color: #ef4444;
+}
+
+.fd-nav-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .fd-user-section {
-    margin-top: auto;
     padding: 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -110,6 +123,8 @@
     justify-content: center;
     font-weight: 700;
     font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .fd-user-info {
@@ -153,6 +168,55 @@
     position: sticky;
     top: 0;
     z-index: 40;
+}
+
+.fd-mobile-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fd-mobile-balance {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+    background: rgba(255, 215, 0, 0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+/* Panels (for Wallet/Leaderboard views) */
+.fd-panel {
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.fd-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.fd-panel-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.fd-back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.fd-back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
 }
 
 /* Hero Section */
@@ -271,15 +335,25 @@
     overflow: hidden;
 }
 
-.fd-thumb-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s;
+.fd-card-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
-.fd-game-card:hover .fd-thumb-img {
-    transform: scale(1.1);
+.fd-card-badge.hot {
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+}
+
+.fd-card-badge.new {
+    background: rgba(34, 197, 94, 0.9);
+    color: white;
 }
 
 .fd-card-info {
@@ -307,6 +381,11 @@
     align-items: center;
     font-size: 0.8rem;
     color: #666;
+}
+
+.fd-play-arrow {
+    color: var(--accent-primary);
+    font-weight: 600;
 }
 
 .fd-live-badge {
@@ -346,7 +425,6 @@
 
     .fd-sidebar {
         display: none;
-        /* Add bottom nav instead later or hamburger */
     }
 
     .fd-mobile-header {
@@ -355,7 +433,6 @@
 
     .fd-main {
         padding-bottom: 80px;
-        /* Space for bottom nav */
     }
 
     .fd-hero {
@@ -371,6 +448,14 @@
 
     .fd-section {
         padding: 0 20px;
+    }
+
+    .fd-panel {
+        padding: 20px;
+    }
+
+    .fd-panel-header {
+        flex-wrap: wrap;
     }
 
     .fd-grid {

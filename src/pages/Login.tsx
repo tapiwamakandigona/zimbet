@@ -4,14 +4,26 @@ import { useAuth } from '../context/AuthContext'
 import './Login.css'
 
 export function Login() {
-    const { signIn } = useAuth()
+    const { signIn, user, zimBetAccount, loading: authLoading } = useAuth()
     const navigate = useNavigate()
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
     const [rememberMe, setRememberMe] = useState(true)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (!authLoading && user) {
+            if (zimBetAccount) {
+                navigate('/dashboard', { replace: true })
+            } else {
+                navigate('/setup', { replace: true })
+            }
+        }
+    }, [user, zimBetAccount, authLoading, navigate])
 
     // Load remembered email on mount
     useEffect(() => {
@@ -26,23 +38,48 @@ export function Login() {
         setError('')
         setLoading(true)
 
+        // Basic validation
+        if (!email.trim() || !password.trim()) {
+            setError('Please enter both email and password')
+            setLoading(false)
+            return
+        }
+
         // Save or clear email based on remember me
         if (rememberMe) {
             localStorage.setItem('zimbet_email', email)
-            localStorage.setItem('zimbet_remember', 'true')
         } else {
             localStorage.removeItem('zimbet_email')
-            localStorage.removeItem('zimbet_remember')
         }
 
         const { error } = await signIn(email, password, rememberMe)
 
         if (error) {
-            setError(error.message)
+            // Clean up error message for common cases
+            let msg = error.message
+            if (msg.includes('Invalid login')) {
+                msg = 'Invalid email or password'
+            }
+            setError(msg)
             setLoading(false)
         } else {
-            navigate('/dashboard')
+            // Navigation happens via useEffect when user state updates
         }
+    }
+
+    // Don't render form if auth is loading or user is logged in
+    if (authLoading) {
+        return (
+            <div className="login-page">
+                <div className="login-container">
+                    <div className="login-header">
+                        <div className="logo">🎰</div>
+                        <h1>ZimBet</h1>
+                    </div>
+                    <div style={{ textAlign: 'center', color: '#94a3b8' }}>Loading...</div>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -51,12 +88,12 @@ export function Login() {
                 <div className="login-header">
                     <div className="logo">🎰</div>
                     <h1>ZimBet</h1>
-                    <p className="subtitle">Rock Paper Scissors Betting</p>
+                    <p className="subtitle">Premium Casino Experience</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
-                    <h2>Login with ZimPay</h2>
-                    <p className="form-desc">Use your ZimPay credentials to continue</p>
+                    <h2>Welcome Back</h2>
+                    <p className="form-desc">Sign in with your ZimPay credentials</p>
 
                     {error && <div className="error-message">{error}</div>}
 
@@ -68,20 +105,32 @@ export function Login() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="your@email.com"
+                            autoComplete="email"
                             required
                         />
                     </div>
 
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-                        <input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                id="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                autoComplete="current-password"
+                                required
+                            />
+                            <button
+                                type="button"
+                                className="password-toggle"
+                                onClick={() => setShowPassword(!showPassword)}
+                                tabIndex={-1}
+                            >
+                                {showPassword ? '🙈' : '👁️'}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="form-group remember-group">
@@ -91,25 +140,24 @@ export function Login() {
                                 checked={rememberMe}
                                 onChange={(e) => setRememberMe(e.target.checked)}
                             />
-                            <span className="checkmark"></span>
                             Keep me logged in
                         </label>
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading}>
-                        {loading ? 'Signing in...' : 'Sign In with ZimPay'}
+                        {loading ? 'Signing in...' : 'Sign In'}
                     </button>
 
                     <p className="register-link">
-                        Don't have a ZimPay account?{' '}
+                        New to ZimPay?{' '}
                         <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">
-                            Create one here
+                            Create account
                         </a>
                     </p>
                 </form>
 
                 <div className="disclaimer">
-                    <p>🎮 Play responsibly. This is a simulation game.</p>
+                    <p>🎮 Play responsibly. This is a simulation.</p>
                 </div>
             </div>
         </div>
