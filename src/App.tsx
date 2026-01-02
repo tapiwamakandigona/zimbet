@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
@@ -50,11 +50,11 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter basename="/zimbet">
+    <HashRouter>
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
