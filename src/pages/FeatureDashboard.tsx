@@ -23,6 +23,7 @@ export function FeatureDashboard() {
         { id: 'dice', name: 'Dice', desc: 'Roll high or low', image: '🎲', color: '#3b82f6', link: '/casino/dice' },
         { id: 'coinflip', name: 'Coin Flip', desc: 'Heads or Tails?', image: '🪙', color: '#10b981', link: '/casino/coinflip' },
         { id: 'wheel', name: 'Wheel', desc: 'Spin to win big', image: '🎡', color: '#8b5cf6', link: '/casino/wheel' },
+        { id: 'plinko', name: 'Plinko', desc: 'Drop the ball to win', image: '🎯', color: '#ec4899', link: '/casino/plinko' },
     ]
 
     return (

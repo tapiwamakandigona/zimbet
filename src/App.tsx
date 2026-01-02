@@ -11,6 +11,7 @@ import { Coinflip } from './pages/games/Coinflip'
 import { Dice } from './pages/games/Dice'
 import { Mines } from './pages/games/Mines'
 import { Wheel } from './pages/games/Wheel'
+import { Plinko } from './pages/games/Plinko'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -78,6 +79,11 @@ function AppRoutes() {
       <Route path="/casino/wheel" element={
         <ProtectedRoute>
           <Wheel />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/plinko" element={
+        <ProtectedRoute>
+          <Plinko />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -153,3 +153,39 @@ export function getFakeBets(roundId: string) {
 
     return bets.sort((a, b) => b.amount - a.amount)
 }
+
+export function getRoundHistory(count: number = 10): number[] {
+    const now = Date.now()
+    let rounds = generateHourlySchedule(now)
+    let activeIndex = rounds.findIndex(r => r.startTime <= now && (r.startTime + r.duration) > now)
+
+    // If active round found, we want rounds BEFORE it.
+    // If no active round (active simulation gap or end of list), find where we are
+    if (activeIndex === -1) {
+        // If we are past the last round of this hour batch (unlikely with 500 rounds), check logic.
+        // Or if we are before first round?
+        // Fallback: use all rounds that have ended
+        const endedRounds = rounds.filter(r => (r.startTime + r.duration) < now)
+        activeIndex = endedRounds.length
+    }
+
+    // Collect history
+    let history: number[] = []
+
+    // Safety for beginning of hour
+    if (activeIndex < count) {
+        // Need previous hour
+        const prevHourRounds = generateHourlySchedule(now - 3600 * 1000)
+        // Take from end of prev hour
+        history = prevHourRounds.slice(-(count - activeIndex)).map(r => r.crashPoint)
+    }
+
+    // Add from current hour
+    // We want rounds from [activeIndex - needed] to [activeIndex]
+    const needed = count - history.length
+    const fromCurrent = rounds.slice(activeIndex - needed, activeIndex).map(r => r.crashPoint)
+    history = [...history, ...fromCurrent]
+
+    // Ensure we have exactly count (trim if needed or return whatever we found)
+    return history
+}

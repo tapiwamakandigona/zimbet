@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { formatMoney } from '../../lib/gameEngine'
 import { soundManager } from '../../lib/audio'
 import { Confetti } from '../../components/Confetti'
-import { getCurrentRound, getFakeBets } from '../../lib/aviatorEngine'
+import { getCurrentRound, getFakeBets, getRoundHistory } from '../../lib/aviatorEngine'
 import type { AviatorState } from '../../lib/aviatorEngine'
 import './Aviator.css'
 
@@ -55,7 +55,13 @@ export function Aviator() {
     useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
     useEffect(() => { zimBetAccountRef.current = zimBetAccount }, [zimBetAccount])
     useEffect(() => { activeBetRef.current = activeBet }, [activeBet])
+    useEffect(() => { activeBetRef.current = activeBet }, [activeBet])
     useEffect(() => { cashedOutRef.current = cashedOut }, [cashedOut])
+
+    // Initialize History
+    useEffect(() => {
+        setHistory(getRoundHistory(20))
+    }, [])
 
     // Multiplayer Channel
     useEffect(() => {

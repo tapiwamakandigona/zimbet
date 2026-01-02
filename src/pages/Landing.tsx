@@ -1,131 +1,233 @@
 import { Link } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
 import './Landing.css'
 
 export function Landing() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  // Particle System
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let width = canvas.width = window.innerWidth
+    let height = canvas.height = window.innerHeight
+
+    const particles: { x: number, y: number, vx: number, vy: number, size: number, alpha: number }[] = []
+    const particleCount = Math.min(100, (width * height) / 10000)
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 2,
+        alpha: Math.random() * 0.5 + 0.1
+      })
+    }
+
+    let animationFrame: number
+
+    const render = () => {
+      ctx.fillStyle = '#0f172a'
+      ctx.fillRect(0, 0, width, height)
+
+      // Draw connections
+      ctx.strokeStyle = 'rgba(255, 215, 0, 0.05)'
+      ctx.lineWidth = 1
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i]
+        p.x += p.vx
+        p.y += p.vy
+
+        if (p.x < 0) p.x = width
+        if (p.x > width) p.x = 0
+        if (p.y < 0) p.y = height
+        if (p.y > height) p.y = 0
+
+        ctx.fillStyle = `rgba(255, 215, 0, ${p.alpha})`
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Connect nearby
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j]
+          const dx = p.x - p2.x
+          const dy = p.y - p2.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 150) {
+            ctx.beginPath()
+            ctx.moveTo(p.x, p.y)
+            ctx.lineTo(p2.x, p2.y)
+            ctx.stroke()
+          }
+        }
+      }
+      animationFrame = requestAnimationFrame(render)
+    }
+
+    render()
+
+    const resize = () => {
+      width = canvas.width = window.innerWidth
+      height = canvas.height = window.innerHeight
+    }
+    window.addEventListener('resize', resize)
+
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
   return (
     <div className="landing-page">
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="hero-bg">
-          <div className="game-floater g1">✈️</div>
-          <div className="game-floater g2">💣</div>
-          <div className="game-floater g3">🎰</div>
-          <div className="game-floater g4">🎲</div>
-          <div className="game-floater g5">🪙</div>
+      <canvas ref={canvasRef} className="bg-canvas" />
+
+      <div className="content-wrapper">
+        {/* Hero Section */}
+        <section className="hero">
+          <div className="hero-content">
+            <div className="hero-badge pulse-glow">
+              <span>🎰</span> Premium Crypto Casino
+            </div>
+            <h1>
+              ZimBet <span className="highlight-text">Casino</span>
+            </h1>
+            <p className="hero-sub">
+              The world's most advanced provably fair gambling platform.<br />
+              Instant payouts via <strong>ZimPay</strong>.
+            </p>
+
+            <div className="cta-group">
+              <Link to="/login" className="btn btn-primary btn-lg glow">
+                <span>🚀</span> Play Now
+              </Link>
+              <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg">
+                Deposit via ZimPay
+              </a>
+            </div>
+
+            <div className="hero-stats">
+              <div className="stat">
+                <span className="val">1.2M+</span>
+                <span className="lbl">Bets Placed</span>
+              </div>
+              <div className="divider"></div>
+              <div className="stat">
+                <span className="val">$500k</span>
+                <span className="lbl">Payouts</span>
+              </div>
+              <div className="divider"></div>
+              <div className="stat">
+                <span className="val">24/7</span>
+                <span className="lbl">Live Support</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Ticker */}
+        <div className="ticker-wrap">
+          <div className="ticker-track">
+            <span className="tick win">🔥 User123 won $540 in Aviator</span>
+            <span className="tick">💎 1,024 Players Online</span>
+            <span className="tick win">🎰 BigWin99 hit 50x on Wheel</span>
+            <span className="tick">🚀 New Game: Plinko Added!</span>
+            <span className="tick win">🔥 User123 won $540 in Aviator</span>
+            <span className="tick">💎 1,024 Players Online</span>
+            <span className="tick win">🎰 BigWin99 hit 50x on Wheel</span>
+            <span className="tick">🚀 New Game: Plinko Added!</span>
+          </div>
         </div>
 
-        <div className="hero-content">
-          <div className="logo-badge">
-            <span className="logo-icon">Z</span>
+        {/* Game Grid */}
+        <section className="games-grid-section">
+          <h2>Premium Games</h2>
+          <div className="grid">
+            <div className="card aviator-card tilt">
+              <div className="card-bg"></div>
+              <div className="card-content">
+                <div className="card-icon">✈️</div>
+                <h3>Aviator</h3>
+                <p>Crash Gaming. Multiplayer.</p>
+                <span className="badge live">● LIVE</span>
+              </div>
+            </div>
+            <div className="card mines-card tilt">
+              <div className="card-bg"></div>
+              <div className="card-content">
+                <div className="card-icon">💎</div>
+                <h3>Mines</h3>
+                <p>Uncover Gems. Multiply Bets.</p>
+              </div>
+            </div>
+            <div className="card wheel-card tilt">
+              <div className="card-bg"></div>
+              <div className="card-content">
+                <div className="card-icon">🎡</div>
+                <h3>Wheel</h3>
+                <p>Spin to Win. 50x Jackpots.</p>
+              </div>
+            </div>
+            <div className="card plinko-card tilt">
+              <div className="card-bg"></div>
+              <div className="card-content">
+                <div className="card-icon">🎯</div>
+                <h3>Plinko</h3>
+                <p>Pegs & Pyramids. 1000x Max.</p>
+                <span className="badge new">NEW</span>
+              </div>
+            </div>
           </div>
-          <h1>ZimBet <span className="highlight">Casino</span></h1>
-          <p className="tagline">Play Smart. Win Big. Live Forever.</p>
+        </section>
 
-          <div className="hero-cta">
-            <Link to="/login" className="btn-primary pulse">
-              <span>🚀</span> Play Aviator Live
-            </Link>
-            <a href="#games" className="btn-secondary">
-              See All Games
-            </a>
+        {/* Footer (ZimPay Style) */}
+        <footer className="landing-footer">
+          <div className="footer-gradient-line"></div>
+          <div className="footer-container">
+            <div className="footer-brand">
+              <div className="nav-logo">
+                <span className="logo-icon">🎰</span>
+                <span className="logo-text">ZimBet</span>
+              </div>
+              <p>A premium casino simulation demonstrating modern web capabilities.</p>
+
+              <div className="social-links">
+                <a href="https://github.com/tapiwamakandigona" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+                </a>
+                <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Portfolio">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" /></svg>
+                </a>
+                <a href="mailto:silentics.org@gmail.com" className="social-icon" aria-label="Email">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
+                </a>
+              </div>
+            </div>
+            <div className="footer-links">
+              <div className="footer-col">
+                <h4>Platform</h4>
+                <Link to="/login">Login</Link>
+                <Link to="/login">Join Now</Link>
+              </div>
+              <div className="footer-col">
+                <h4>Ecosystem</h4>
+                <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">ZimPay</a>
+                <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Portfolio</a>
+              </div>
+            </div>
           </div>
-
-          <div className="powered-by">
-            <span>Secure Ecosystem by</span>
-            <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">
-              💳 ZimPay
-            </a>
+          <div className="footer-bottom">
+            <p>© {new Date().getFullYear()} ZimBet • Designed & Built with 💙 by <a href="https://tapiwamakandigona.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Tapiwa Makandigona</a></p>
           </div>
-        </div>
-      </section>
-
-      {/* Live Stats Ticker */}
-      <div className="ticker-wrap">
-        <div className="ticker">
-          <div className="ticker-item">🔥 Aviator: 540x Multiplier Just Hit!</div>
-          <div className="ticker-item">💎 Mines: $5,000 Jackpot Won</div>
-          <div className="ticker-item">🎰 Wheel: 50x Gold Segment Active</div>
-          <div className="ticker-item">🚀 1,204 Players Online</div>
-          <div className="ticker-item">🔥 Aviator: 540x Multiplier Just Hit!</div>
-          <div className="ticker-item">💎 Mines: $5,000 Jackpot Won</div>
-        </div>
+        </footer>
       </div>
-
-      {/* Featured Games */}
-      <section id="games" className="games-showcase">
-        <h2>Premium Games</h2>
-        <div className="games-grid">
-          <div className="game-card aviator">
-            <div className="card-emoji">✈️</div>
-            <h3>Aviator</h3>
-            <p>The world's #1 crash game. Multiplayer excitement.</p>
-            <span className="live-pill">● LIVE</span>
-          </div>
-          <div className="game-card mines">
-            <div className="card-emoji">💣</div>
-            <h3>Mines</h3>
-            <p>Uncover gems, dodge bombs, multiply your cash.</p>
-          </div>
-          <div className="game-card wheel">
-            <div className="card-emoji">🎡</div>
-            <h3>Wheel</h3>
-            <p>Spin the Wheel of Fortune. 50x Multipliers!</p>
-          </div>
-          <div className="game-card coin">
-            <div className="card-emoji">🪙</div>
-            <h3>Coinflip</h3>
-            <p>Double or nothing. 50/50 chance to win.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* Trust Section */}
-      <section className="features-section">
-        <h2>Why ZimBet?</h2>
-        <div className="features">
-          <div className="feature">
-            <span className="feature-icon">🔒</span>
-            <h3>Provably Fair</h3>
-            <p>Our algorithms ensure every round is random and verifiable.</p>
-          </div>
-          <div className="feature">
-            <span className="feature-icon">⚡</span>
-            <h3>Instant Payouts</h3>
-            <p>Direct integration with your ZimPay wallet.</p>
-          </div>
-          <div className="feature">
-            <span className="feature-icon">🎮</span>
-            <h3>Immersive</h3>
-            <p>Premium sound effects and 3D visuals.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="cta-section">
-        <h2>Ready to Fly?</h2>
-        <p>Join the fastest growing casino community today.</p>
-        <Link to="/login" className="btn-primary large">
-          <span>🎰</span> Enter Casino
-        </Link>
-      </section>
-
-      {/* Footer */}
-      <footer className="landing-footer">
-        <div className="footer-content">
-          <div className="footer-brand">
-            <span>Z</span> ZimBet
-          </div>
-          <p className="disclaimer">
-            18+ only. Play responsibly. ZimBet is a project by Silentics.
-          </p>
-          <div className="footer-links">
-            <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">ZimPay</a>
-            <span>•</span>
-            <a href="https://silentics.org" target="_blank" rel="noopener noreferrer">Silentics</a>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

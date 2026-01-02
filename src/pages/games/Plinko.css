@@ -1,0 +1,202 @@
+/* Plinko.css */
+.plinko-container {
+    height: 100vh;
+    background: #0f172a;
+    color: white;
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.game-layout {
+    display: flex;
+    width: 100%;
+    max-width: 1200px;
+}
+
+/* Sidebar */
+.controls-sidebar {
+    width: 300px;
+    background: #1e293b;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.game-logo {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #e23333;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.bet-input-row {
+    display: flex;
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bet-input-row input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    padding: 8px;
+    width: 100%;
+    font-weight: 700;
+}
+
+.quick-select {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quick-select button {
+    background: #334155;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.quick-select button:hover {
+    background: #475569;
+}
+
+select {
+    width: 100%;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.play-btn {
+    margin-top: auto;
+    background: #22c55e;
+    color: #0f172a;
+    border: none;
+    padding: 16px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.play-btn:hover {
+    transform: translateY(-2px);
+    background: #16a34a;
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+}
+
+.play-btn:disabled {
+    background: #334155;
+    color: #64748b;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.back-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    padding: 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.back-btn:hover {
+    color: white;
+    border-color: white;
+}
+
+/* Stage */
+.stage-area {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
+}
+
+.canvas-wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.multipliers-display {
+    display: flex;
+    gap: 4px;
+    margin-top: -30px;
+    /* Overlap canvas slightly */
+    padding: 0 20px;
+    z-index: 2;
+}
+
+.mult-box {
+    width: 38px;
+    /* Match bucketWidth? ColGap is 40. 38 for spacing */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #0f172a;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border-top: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .game-layout {
+        flex-direction: column;
+    }
+
+    .controls-sidebar {
+        width: 100%;
+        order: 2;
+        padding: 16px;
+    }
+
+    .stage-area {
+        height: 60vh;
+        order: 1;
+    }
+
+    .canvas-wrapper canvas {
+        transform: scale(0.6);
+        /* Hack for fitting small screen */
+        transform-origin: top center;
+    }
+}
