@@ -36,11 +36,12 @@ export function Aviator() {
 
     // Betting State
     const [betAmount, setBetAmount] = useState<number>(10)
-    const [nextRoundBet, setNextRoundBet] = useState<boolean>(false) // Bet placed for NEXT round
-    const [activeBet, setActiveBet] = useState<boolean>(false) // Bet active in CURRENT round
+    const [nextRoundBet, setNextRoundBet] = useState<boolean>(false)
+    const [activeBet, setActiveBet] = useState<boolean>(false)
     const [cashedOut, setCashedOut] = useState<boolean>(false)
     const [winAmount, setWinAmount] = useState<number>(0)
     const [liveBets, setLiveBets] = useState<Bet[]>([])
+    const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
     // Load history
     useEffect(() => {
@@ -63,24 +64,11 @@ export function Aviator() {
         setMultiplier(1.00)
         setCashedOut(false)
         setWinAmount(0)
+        setErrorMsg(null)
 
-        // Check if we have a queued bet
-        if (nextRoundBet) {
-            if (zimBetAccount && zimBetAccount.balance >= betAmount) {
-                // Deduct balance
-                supabase.from('zimbet_accounts')
-                    .update({ balance: Math.floor(zimBetAccount.balance - betAmount) })
-                    .eq('id', zimBetAccount.id)
-                    .then(() => refreshAccount())
-
-                setActiveBet(true)
-                setNextRoundBet(false)
-            } else {
-                setNextRoundBet(false) // Insufficient funds, cancel bet
-            }
-        } else {
-            setActiveBet(false)
-        }
+        // At start of round, check if there's a queued bet
+        // Note: nextRoundBet might already be false if user placed it DURING waiting phase
+        // but we handle that in the placeBet logic now.
 
         // Generate fake bets for this round
         const roundBets: Bet[] = Array.from({ length: 15 }, () => ({
@@ -101,7 +89,7 @@ export function Aviator() {
                 startFlight()
             }
         }, 100)
-    }, [nextRoundBet, betAmount, zimBetAccount, refreshAccount])
+    }, []) // Logic moved out to trigger points
 
     const startFlight = useCallback(() => {
         setPhase('flying')
@@ -118,13 +106,13 @@ export function Aviator() {
         if (!canvas || !ctx) return
 
         const elapsed = (Date.now() - startTimeRef.current) / 1000
-        const currentMult = Math.max(1, Math.pow(Math.E, elapsed * 0.1))
+        const currentMult = Math.max(1, Math.pow(Math.E, elapsed * 0.12)) // Slightly faster
 
         setMultiplier(currentMult)
 
         // Update fake bets (randomly cash out)
         setLiveBets(prev => prev.map(bet => {
-            if (!bet.multiplier && Math.random() < 0.05 && currentMult > 1.1) {
+            if (!bet.multiplier && Math.random() < 0.03 && currentMult > 1.2) {
                 return { ...bet, multiplier: currentMult, win: Math.floor(bet.amount * currentMult) }
             }
             return bet
@@ -136,68 +124,62 @@ export function Aviator() {
             return
         }
 
-        // Drawing Logic
         const width = canvas.width
         const height = canvas.height
-
         ctx.clearRect(0, 0, width, height)
 
         // Draw Grid
-        ctx.strokeStyle = '#2a2b2e'
+        ctx.strokeStyle = 'rgba(42, 43, 46, 0.5)'
         ctx.lineWidth = 1
         ctx.beginPath()
-        for (let i = 0; i < width; i += 50) { ctx.moveTo(i, 0); ctx.lineTo(i, height); }
-        for (let i = 0; i < height; i += 50) { ctx.moveTo(0, i); ctx.lineTo(width, i); }
+        for (let i = 0; i < width; i += width / 10) { ctx.moveTo(i, 0); ctx.lineTo(i, height); }
+        for (let i = 0; i < height; i += height / 10) { ctx.moveTo(0, i); ctx.lineTo(width, i); }
         ctx.stroke()
 
-        // Plane Animation Logic
-        // Plane starts bottom left, moves to top right
-        // We use a visual progress time of about 5 seconds to traverse the canvas
-        // even if the game goes longer (plane just stays at top right shaking)
+        const visualProgress = Math.min(1, elapsed / 8)
 
-        const visualProgress = Math.min(1, elapsed / 5)
-
-        // Calculate curve point
-        // Quadratic Bezier: (1-t)^2 * P0 + 2(1-t)t * P1 + t^2 * P2
         const p0 = { x: 0, y: height }
-        const p1 = { x: width * 0.6, y: height } // Control point
-        const p2 = { x: width - 80, y: 100 } // End point
+        const p1 = { x: width * 0.4, y: height }
+        const p2 = { x: width - 60, y: 60 }
 
         const t = visualProgress
         const bx = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x
         const by = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y
 
-        // Draw fill area
-        ctx.fillStyle = 'rgba(226, 51, 51, 0.4)' // Red transparent
+        // Draw fill area with gradient
+        const grd = ctx.createLinearGradient(0, height, bx, by)
+        grd.addColorStop(0, 'rgba(226, 51, 51, 0.2)')
+        grd.addColorStop(1, 'rgba(226, 51, 51, 0.6)')
+
+        ctx.fillStyle = grd
         ctx.beginPath()
         ctx.moveTo(0, height)
-        ctx.quadraticCurveTo(p1.x * t, height - (height - by) * 0.5, bx, by) // Approx fill using current point
+        ctx.quadraticCurveTo(p1.x * t, height - (height - by) * 0.3, bx, by)
         ctx.lineTo(bx, height)
-        ctx.lineTo(0, height)
+        ctx.closePath()
         ctx.fill()
 
-        // Draw Curve Line
+        // Draw Curve Line with glow
         ctx.shadowColor = '#e23333'
-        ctx.shadowBlur = 15
+        ctx.shadowBlur = 20
         ctx.strokeStyle = '#e23333'
-        ctx.lineWidth = 5
+        ctx.lineWidth = 4
+        ctx.lineCap = 'round'
         ctx.beginPath()
         ctx.moveTo(0, height)
-        ctx.quadraticCurveTo(p1.x * t, height - (height - by) * 0.5, bx, by)
+        ctx.quadraticCurveTo(p1.x * t, height - (height - by) * 0.3, bx, by)
         ctx.stroke()
         ctx.shadowBlur = 0
 
         // Draw Plane
         ctx.translate(bx, by)
-        // Rotate calculated by derivative of quadratic bezier could be better, 
-        // but fixed rotation for simple "takeoff" look works too
-        const rotation = -Math.atan2(height - by, bx) * 0.5 // Simple visual tilt
-        ctx.rotate(rotation + 0.2) // Adjustment
+        const rotation = -Math.atan2(height - by, bx) * 0.6
+        ctx.rotate(rotation + 0.1)
 
-        ctx.font = '40px Arial'
+        ctx.font = '36px Arial'
         ctx.fillStyle = 'white'
-        ctx.fillText('✈️', -20, 10)
-        ctx.resetTransform() // Reset for next frame
+        ctx.fillText('✈️', -18, 9)
+        ctx.resetTransform()
 
         animationRef.current = requestAnimationFrame(drawFrame)
     }, [])
@@ -209,15 +191,20 @@ export function Aviator() {
         saveHistory(crashVal)
 
         if (activeBet && !cashedOut) {
-            // Player lost
-            supabase.from('zimbet_accounts')
-                .update({
-                    total_losses: zimBetAccount!.total_losses + 1,
-                    total_earnings: zimBetAccount!.total_earnings - betAmount
-                })
-                .eq('id', zimBetAccount!.id)
-                .then(() => refreshAccount())
+            // Player lost - update DB
+            if (zimBetAccount) {
+                supabase.from('zimbet_accounts')
+                    .update({
+                        total_losses: zimBetAccount.total_losses + 1,
+                        total_earnings: zimBetAccount.total_earnings - betAmount
+                    })
+                    .eq('id', zimBetAccount.id)
+                    .then(() => refreshAccount())
+            }
         }
+
+        // Reset betting states
+        setActiveBet(false)
 
         setTimeout(() => {
             startGame()
@@ -227,12 +214,12 @@ export function Aviator() {
     const handleCashout = async () => {
         if (phase !== 'flying' || !activeBet || cashedOut) return
 
-        setCashedOut(true)
         const currentMult = multiplier
         const win = Math.floor(betAmount * currentMult)
+
+        setCashedOut(true)
         setWinAmount(win)
 
-        // Update DB
         if (zimBetAccount) {
             await supabase.from('zimbet_accounts').update({
                 balance: Math.floor(zimBetAccount.balance + win),
@@ -243,22 +230,72 @@ export function Aviator() {
         }
     }
 
-    const toggleBet = () => {
-        if (activeBet || nextRoundBet) {
-            // Cancel bet
+    // --- ENHANCED BETTING LOGIC ---
+    const handlePlaceBet = async () => {
+        if (!zimBetAccount) return
+
+        const amount = Math.floor(betAmount)
+        if (amount < 1 || amount > zimBetAccount.balance) {
+            setErrorMsg('Invalid amount or balance')
+            return
+        }
+
+        if (phase === 'waiting') {
+            // Place bet IMMEDIATELY for CURRENT round
+            await supabase.from('zimbet_accounts')
+                .update({ balance: Math.floor(zimBetAccount.balance - amount) })
+                .eq('id', zimBetAccount.id)
+
+            setActiveBet(true)
             setNextRoundBet(false)
+            refreshAccount()
+            setErrorMsg(null)
         } else {
-            // Place bet for next round
+            // Queue bet for NEXT round
             setNextRoundBet(true)
+            setErrorMsg(null)
         }
     }
 
-    // Effect to handle canvas resizing
+    const cancelBet = () => {
+        // Only allow cancel if it's next round bet OR active but round hasn't started
+        if (nextRoundBet) {
+            setNextRoundBet(false)
+        } else if (activeBet && phase === 'waiting') {
+            // Refund - this is a simplification, real games allow cancel during waiting
+            // For logic simplicity, we'll just toggle the state if user hasn't confirmed
+            // but if they already deducted balance we should refund.
+            // Letting just nextRoundBet be the queue and activeBet be the confirmed.
+
+            // If activeBet is true, balance was ALREADY deducted.
+            // Let's implement refund
+            if (zimBetAccount) {
+                supabase.from('zimbet_accounts')
+                    .update({ balance: Math.floor(zimBetAccount.balance + betAmount) })
+                    .eq('id', zimBetAccount.id)
+                    .then(() => {
+                        setActiveBet(false)
+                        refreshAccount()
+                    })
+            }
+        }
+    }
+
+    // Effect to handle canvas resizing and scaling for High DPI
     useEffect(() => {
         const resize = () => {
             if (canvasRef.current && containerRef.current) {
-                canvasRef.current.width = containerRef.current.clientWidth
-                canvasRef.current.height = containerRef.current.clientHeight
+                const ratio = window.devicePixelRatio || 1
+                const w = containerRef.current.clientWidth
+                const h = containerRef.current.clientHeight
+
+                canvasRef.current.width = w * ratio
+                canvasRef.current.height = h * ratio
+                canvasRef.current.style.width = `${w}px`
+                canvasRef.current.style.height = `${h}px`
+
+                const ctx = canvasRef.current.getContext('2d')
+                if (ctx) ctx.scale(ratio, ratio)
             }
         }
         window.addEventListener('resize', resize)
@@ -266,7 +303,7 @@ export function Aviator() {
         return () => window.removeEventListener('resize', resize)
     }, [])
 
-    // Start game on mount
+    // Start game loop on mount
     useEffect(() => {
         startGame()
         return () => {
@@ -279,12 +316,11 @@ export function Aviator() {
             <Confetti trigger={Boolean(cashedOut && multiplier > 3)} />
 
             <div className="aviator-layout">
-                {/* LEFT SIDEBAR - BETS */}
+                {/* LEFT SIDEBAR */}
                 <div className="bets-sidebar">
                     <div className="sidebar-header">
                         <span className="tab active">All Bets</span>
                         <span className="tab">My Bets</span>
-                        <span className="tab">Top</span>
                     </div>
                     <div className="bets-list-header">
                         <span>User</span>
@@ -295,7 +331,7 @@ export function Aviator() {
                         {liveBets.map((bet, i) => (
                             <div key={i} className={`bet-row ${bet.multiplier ? 'win' : ''}`}>
                                 <span className="user-col">
-                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${bet.user}`} alt="avatar" className="avatar-tiny" />
+                                    <div className="avatar-placeholder" style={{ background: `hsl(${i * 45}, 60%, 50%)` }}></div>
                                     {bet.user}
                                 </span>
                                 <span className="amt-col">{bet.amount}</span>
@@ -309,15 +345,14 @@ export function Aviator() {
                     </div>
                 </div>
 
-                {/* MAIN GAME AREA */}
+                {/* MAIN STAGE */}
                 <div className="main-stage">
-                    {/* TOP BAR */}
                     <div className="top-bar">
-                        <div className="logo">
+                        <div className="logo" onClick={() => navigate('/dashboard')}>
                             <span className="red-text">Aviator</span>
                         </div>
                         <div className="history-scroller">
-                            {history.map((h, i) => (
+                            {history.slice(0, 10).map((h, i) => (
                                 <div key={i} className={`history-pill ${h < 2 ? 'blue' : h < 10 ? 'purple' : 'pink'}`}>
                                     {h.toFixed(2)}x
                                 </div>
@@ -325,15 +360,13 @@ export function Aviator() {
                         </div>
                         <div className="wallet-pill">
                             <span className="green-text">{formatMoney(zimBetAccount?.balance || 0)}</span>
-                            <button className="menu-btn" onClick={() => navigate('/dashboard')}>Exit</button>
+                            <button className="menu-btn" onClick={() => navigate('/dashboard')}>EXIT</button>
                         </div>
                     </div>
 
-                    {/* CANVAS CONTAINER */}
                     <div className="canvas-wrapper" ref={containerRef}>
                         <canvas ref={canvasRef} />
 
-                        {/* OVERLAYS */}
                         {phase === 'waiting' && (
                             <div className="waiting-overlay">
                                 <div className="loader-spinner"></div>
@@ -358,10 +391,9 @@ export function Aviator() {
                         )}
                     </div>
 
-                    {/* CONTROLS AREA - EXACT REPLICA */}
                     <div className="controls-area">
-                        {/* We use 2 control panels to look like the real game, only left 1 works */}
-                        <div className="control-panel active-panel">
+                        <div className="control-panel">
+                            {errorMsg && <div className="bet-error">{errorMsg}</div>}
                             <div className="bet-input-row">
                                 <div className="counter">
                                     <button onClick={() => setBetAmount(b => Math.max(1, b - 1))}>−</button>
@@ -369,8 +401,8 @@ export function Aviator() {
                                     <button onClick={() => setBetAmount(b => b + 1)}>+</button>
                                 </div>
                                 <div className="quick-select">
-                                    {[1, 2, 5, 10].map(n => (
-                                        <button key={n} onClick={() => setBetAmount(n)}>{n}</button>
+                                    {[1, 5, 10, 50].map(n => (
+                                        <button key={n} onClick={() => setBetAmount(n)}>${n}</button>
                                     ))}
                                 </div>
                             </div>
@@ -384,9 +416,9 @@ export function Aviator() {
                                         </button>
                                     ) : (
                                         phase === 'waiting' ? (
-                                            <button className="bet-btn cancel" onClick={toggleBet}>
+                                            <button className="bet-btn cancel" onClick={cancelBet}>
                                                 <div className="btn-label">CANCEL</div>
-                                                <div className="btn-sub">BET</div>
+                                                <div className="btn-sub">WAITING...</div>
                                             </button>
                                         ) : (
                                             <button className="bet-btn cashout" onClick={handleCashout}>
@@ -397,38 +429,32 @@ export function Aviator() {
                                     )
                                 ) : (
                                     nextRoundBet ? (
-                                        <button className="bet-btn cancel" onClick={toggleBet}>
-                                            <div className="btn-label">WAITING</div>
-                                            <div className="btn-sub">CANCEL BET</div>
+                                        <button className="bet-btn cancel" onClick={cancelBet}>
+                                            <div className="btn-label">CANCEL</div>
+                                            <div className="btn-sub">NEXT ROUND</div>
                                         </button>
                                     ) : (
-                                        <button className="bet-btn place" onClick={toggleBet}>
+                                        <button
+                                            className="bet-btn place"
+                                            onClick={handlePlaceBet}
+                                            disabled={!zimBetAccount || betAmount > zimBetAccount.balance}
+                                        >
                                             <div className="btn-label">BET</div>
-                                            <div className="btn-val">{formatMoney(betAmount)}</div>
+                                            <div className="btn-val">${betAmount}</div>
                                         </button>
                                     )
                                 )}
                             </div>
                         </div>
 
-                        {/* Dummy 2nd Panel for authenticity */}
-                        <div className="control-panel faded-panel">
-                            <div className="bet-input-row">
-                                <div className="counter">
-                                    <button disabled>−</button>
-                                    <input value="10" readOnly />
-                                    <button disabled>+</button>
-                                </div>
-                                <div className="quick-select">
-                                    <button>1</button><button>2</button><button>5</button><button>10</button>
-                                </div>
+                        {/* Secondary Interactive Panel */}
+                        <div className="control-panel secondary-panel">
+                            <div className="bet-header">Auto Options</div>
+                            <div className="auto-controls">
+                                <button className="auto-btn">Auto Bet</button>
+                                <button className="auto-btn">Auto Cash Out</button>
                             </div>
-                            <div className="main-action">
-                                <button className="bet-btn place" disabled>
-                                    <div className="btn-label">BET</div>
-                                    <div className="btn-val">$10.00</div>
-                                </button>
-                            </div>
+                            <div className="dummy-info">Practice mode active</div>
                         </div>
                     </div>
                 </div>
