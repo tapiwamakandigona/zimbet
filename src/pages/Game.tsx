@@ -103,6 +103,32 @@ const getWinner = (p1: Choice, p2: Choice): 'p1' | 'p2' | 'draw' => {
     return 'p2'
 }
 
+// Addictive encouraging messages
+const WIN_MESSAGES = [
+    "🔥 You're on fire!",
+    "💰 Easy money!",
+    "🎯 Perfect read!",
+    "👑 Champion move!",
+    "⚡ Unstoppable!",
+    "🌟 You're a natural!",
+    "💎 Big brain play!"
+]
+
+const LOSE_MESSAGES = [
+    "😤 So close! Try again!",
+    "🎲 Luck wasn't on your side...",
+    "💪 You'll get them next time!",
+    "🔄 One more try!",
+    "📈 Your luck is about to turn!"
+]
+
+const STREAK_MESSAGES: Record<number, string> = {
+    2: "🔥 2 wins in a row!",
+    3: "🔥🔥 3 WIN STREAK!",
+    4: "🔥🔥🔥 4 WINS! UNSTOPPABLE!",
+    5: "👑 5 WIN STREAK! LEGENDARY!"
+}
+
 export function Game() {
     const { zimBetAccount, refreshAccount } = useAuth()
     const navigate = useNavigate()
@@ -119,6 +145,12 @@ export function Game() {
     const [result, setResult] = useState<'win' | 'lose' | 'draw' | null>(null)
     const [earnings, setEarnings] = useState(0)
     const [showBotPrompt, setShowBotPrompt] = useState(false)
+
+    // Addictive features - win streaks
+    const [winStreak, setWinStreak] = useState(() => {
+        return parseInt(localStorage.getItem('zimbet_streak') || '0')
+    })
+    const [motivationMsg, setMotivationMsg] = useState('')
 
     // Validate bet amount
     useEffect(() => {
@@ -373,6 +405,16 @@ export function Game() {
                 const netProfit = winnings - betAmount
                 setEarnings(netProfit)
 
+                // Update win streak - addictive dopamine hit
+                const newStreak = winStreak + 1
+                setWinStreak(newStreak)
+                localStorage.setItem('zimbet_streak', String(newStreak))
+
+                // Set encouraging message
+                const streakMsg = STREAK_MESSAGES[newStreak] || (newStreak > 5 ? `🏆 ${newStreak} WIN STREAK! INSANE!` : '')
+                const randomWin = WIN_MESSAGES[Math.floor(Math.random() * WIN_MESSAGES.length)]
+                setMotivationMsg(streakMsg || randomWin)
+
                 if (zimBetAccount) {
                     await supabase
                         .from('zimbet_accounts')
@@ -387,6 +429,14 @@ export function Game() {
                 setResult('lose')
                 setEarnings(-betAmount)
 
+                // Reset streak on loss but encourage retry
+                const hadStreak = winStreak > 0
+                setWinStreak(0)
+                localStorage.setItem('zimbet_streak', '0')
+
+                const randomLose = LOSE_MESSAGES[Math.floor(Math.random() * LOSE_MESSAGES.length)]
+                setMotivationMsg(hadStreak ? `Streak ended! ${randomLose}` : randomLose)
+
                 if (zimBetAccount) {
                     await supabase
                         .from('zimbet_accounts')
@@ -399,6 +449,7 @@ export function Game() {
             } else {
                 setResult('draw')
                 setEarnings(0)
+                setMotivationMsg('🤝 So close! Go again!')
 
                 // Draw: refund the bet
                 if (zimBetAccount) {
@@ -573,6 +624,20 @@ export function Game() {
                         {result === 'lose' && `-$${betAmount}`}
                         {result === 'draw' && 'Bet Refunded'}
                     </div>
+
+                    {/* Motivation message - addictive hook */}
+                    {motivationMsg && (
+                        <div className={`motivation-msg ${result}`}>
+                            {motivationMsg}
+                        </div>
+                    )}
+
+                    {/* Win streak display */}
+                    {result === 'win' && winStreak > 1 && (
+                        <div className="streak-badge">
+                            🔥 {winStreak} Win Streak!
+                        </div>
+                    )}
 
                     <div className="result-actions">
                         <button className="btn-primary" onClick={playAgain}>

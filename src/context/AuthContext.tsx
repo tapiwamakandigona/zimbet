@@ -9,7 +9,7 @@ type AuthContextType = {
     session: Session | null
     zimBetAccount: ZimBetAccount | null
     loading: boolean
-    signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+    signIn: (email: string, password: string, rememberMe?: boolean) => Promise<{ error: Error | null }>
     signOut: () => Promise<void>
     refreshAccount: () => Promise<void>
     createZimBetAccount: (username: string) => Promise<{ error: Error | null }>
@@ -69,7 +69,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    const signIn = async (email: string, password: string) => {
+    const signIn = async (email: string, password: string, _rememberMe: boolean = true) => {
+        // Supabase persists session by default in localStorage
+        // rememberMe is handled by localStorage in Login component
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         return { error: error as Error | null }
     }

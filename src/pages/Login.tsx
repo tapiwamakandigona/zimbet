@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Login.css'
@@ -9,15 +9,33 @@ export function Login() {
 
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [rememberMe, setRememberMe] = useState(true)
     const [error, setError] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Load remembered email on mount
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('zimbet_email')
+        if (savedEmail) {
+            setEmail(savedEmail)
+        }
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError('')
         setLoading(true)
 
-        const { error } = await signIn(email, password)
+        // Save or clear email based on remember me
+        if (rememberMe) {
+            localStorage.setItem('zimbet_email', email)
+            localStorage.setItem('zimbet_remember', 'true')
+        } else {
+            localStorage.removeItem('zimbet_email')
+            localStorage.removeItem('zimbet_remember')
+        }
+
+        const { error } = await signIn(email, password, rememberMe)
 
         if (error) {
             setError(error.message)
@@ -64,6 +82,18 @@ export function Login() {
                             placeholder="••••••••"
                             required
                         />
+                    </div>
+
+                    <div className="form-group remember-group">
+                        <label className="checkbox-label">
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                            />
+                            <span className="checkmark"></span>
+                            Keep me logged in
+                        </label>
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading}>

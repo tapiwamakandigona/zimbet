@@ -386,6 +386,59 @@
     max-width: 280px;
 }
 
+/* Motivation Message - Addictive Hook */
+.motivation-msg {
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    animation: fadeInUp 0.5s ease;
+}
+
+.motivation-msg.win {
+    color: #2ecc71;
+    background: rgba(46, 204, 113, 0.15);
+}
+
+.motivation-msg.lose {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.15);
+}
+
+.motivation-msg.draw {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.15);
+}
+
+/* Win Streak Badge */
+.streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #ff6b00, #ff0000);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 20px;
+    animation: pulse 0.5s ease infinite, bounceIn 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 100, 0, 0.4);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Animations */
 @keyframes spin {
     to {
