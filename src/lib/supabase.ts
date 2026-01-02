@@ -24,6 +24,7 @@ export type ZimBetAccount = {
     total_wins: number
     total_losses: number
     total_earnings: number
+    last_daily_claim: string | null
     created_at: string
 }
 

@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ToastProvider } from './components/Toast'
+import { MobileNav } from './components/MobileNav'
 import { Login } from './pages/Login'
 import './App.css'
 
@@ -48,77 +50,86 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
+  const location = useLocation()
+  const showMobileNav = !['/login', '/setup', '/'].includes(location.pathname)
+
   return (
-    <Suspense fallback={<LoadingScreen />}>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
+    <>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
 
-        <Route path="/setup" element={
-          <ProtectedRoute>
-            <SetupAccount />
-          </ProtectedRoute>
-        } />
+          <Route path="/setup" element={
+            <ProtectedRoute>
+              <SetupAccount />
+            </ProtectedRoute>
+          } />
 
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <FeatureDashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/game" element={
-          <ProtectedRoute>
-            <Game />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino" element={
-          <ProtectedRoute>
-            <CasinoLobby />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/aviator" element={
-          <ProtectedRoute>
-            <Aviator />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/coinflip" element={
-          <ProtectedRoute>
-            <Coinflip />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/dice" element={
-          <ProtectedRoute>
-            <Dice />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/mines" element={
-          <ProtectedRoute>
-            <Mines />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/wheel" element={
-          <ProtectedRoute>
-            <Wheel />
-          </ProtectedRoute>
-        } />
-        <Route path="/casino/plinko" element={
-          <ProtectedRoute>
-            <Plinko />
-          </ProtectedRoute>
-        } />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <FeatureDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/game" element={
+            <ProtectedRoute>
+              <Game />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino" element={
+            <ProtectedRoute>
+              <CasinoLobby />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/aviator" element={
+            <ProtectedRoute>
+              <Aviator />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/coinflip" element={
+            <ProtectedRoute>
+              <Coinflip />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/dice" element={
+            <ProtectedRoute>
+              <Dice />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/mines" element={
+            <ProtectedRoute>
+              <Mines />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/wheel" element={
+            <ProtectedRoute>
+              <Wheel />
+            </ProtectedRoute>
+          } />
+          <Route path="/casino/plinko" element={
+            <ProtectedRoute>
+              <Plinko />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+      {showMobileNav && <MobileNav />}
+    </>
   )
 }
 
 function App() {
   return (
     <BrowserRouter basename="/zimbet">
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   )
 }
 
 export default App
+

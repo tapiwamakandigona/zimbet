@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Wallet } from '../components/Wallet'
 import { Leaderboard } from '../components/Leaderboard'
+import { DailyBonus } from '../components/DailyBonus'
 import './FeatureDashboard.css'
 
 import { soundManager } from '../lib/audio'
@@ -99,6 +100,10 @@ export function FeatureDashboard() {
                                 <p>The world's most popular crash game. Place your bet, watch the multiplier rise, and cash out before the plane flies away!</p>
                                 <button className="fd-play-btn" onClick={() => navigate('/casino/aviator')}>PLAY NOW</button>
                             </div>
+                        </div>
+
+                        <div className="fd-section">
+                            <DailyBonus />
                         </div>
 
                         <div className="fd-section">
