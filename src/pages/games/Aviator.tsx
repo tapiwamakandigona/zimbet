@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { generateAviatorCrashPoint, formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio' // Import audio
 import { Confetti } from '../../components/Confetti'
 import './Aviator.css'
 
@@ -43,6 +44,15 @@ export function Aviator() {
     const [liveBets, setLiveBets] = useState<Bet[]>([])
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
+    // Refs for state access in callbacks
+    const nextRoundBetRef = useRef(nextRoundBet)
+    const betAmountRef = useRef(betAmount)
+    const zimBetAccountRef = useRef(zimBetAccount)
+
+    useEffect(() => { nextRoundBetRef.current = nextRoundBet }, [nextRoundBet])
+    useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
+    useEffect(() => { zimBetAccountRef.current = zimBetAccount }, [zimBetAccount])
+
     // Load history
     useEffect(() => {
         const saved = localStorage.getItem('aviator_history')
@@ -57,18 +67,48 @@ export function Aviator() {
         })
     }, [])
 
+    // Helper to execute a bet transaction
+    const executeBetTransaction = async (amount: number) => {
+        if (!zimBetAccountRef.current) return false
+
+        const { error } = await supabase.from('zimbet_accounts')
+            .update({ balance: Math.floor(zimBetAccountRef.current.balance - amount) })
+            .eq('id', zimBetAccountRef.current.id)
+
+        if (!error) {
+            refreshAccount()
+            return true
+        }
+        return false
+    }
+
     // --- GAME LOOP ---
 
-    const startGame = useCallback(() => {
+    const startGame = useCallback(async () => {
         setPhase('waiting')
         setMultiplier(1.00)
         setCashedOut(false)
         setWinAmount(0)
         setErrorMsg(null)
 
-        // At start of round, check if there's a queued bet
-        // Note: nextRoundBet might already be false if user placed it DURING waiting phase
-        // but we handle that in the placeBet logic now.
+        // Process Queued Bet
+        if (nextRoundBetRef.current) {
+            const amount = betAmountRef.current
+            if (zimBetAccountRef.current && zimBetAccountRef.current.balance >= amount) {
+                const success = await executeBetTransaction(amount)
+                if (success) {
+                    setActiveBet(true)
+                    setNextRoundBet(false)
+                    // soundManager.playAction() - maybe too noisy on auto?
+                } else {
+                    setNextRoundBet(false)
+                    setErrorMsg('Balance too low for queued bet')
+                }
+            } else {
+                setNextRoundBet(false)
+                setErrorMsg('Balance too low for queued bet')
+            }
+        }
 
         // Generate fake bets for this round
         const roundBets: Bet[] = Array.from({ length: 15 }, () => ({
@@ -89,10 +129,11 @@ export function Aviator() {
                 startFlight()
             }
         }, 100)
-    }, []) // Logic moved out to trigger points
+    }, []) // Dependencies intentionally minimal as we use Refs
 
     const startFlight = useCallback(() => {
         setPhase('flying')
+        soundManager.playAction()
         startTimeRef.current = Date.now()
         crashPointRef.current = generateAviatorCrashPoint()
 
@@ -189,6 +230,7 @@ export function Aviator() {
         setPhase('crashed')
         setMultiplier(crashVal)
         saveHistory(crashVal)
+        soundManager.playLoss()
 
         if (activeBet && !cashedOut) {
             // Player lost - update DB
@@ -214,6 +256,7 @@ export function Aviator() {
     const handleCashout = async () => {
         if (phase !== 'flying' || !activeBet || cashedOut) return
 
+        soundManager.playWin()
         const currentMult = multiplier
         const win = Math.floor(betAmount * currentMult)
 
@@ -233,6 +276,7 @@ export function Aviator() {
     // --- ENHANCED BETTING LOGIC ---
     const handlePlaceBet = async () => {
         if (!zimBetAccount) return
+        soundManager.playClick()
 
         const amount = Math.floor(betAmount)
         if (amount < 1 || amount > zimBetAccount.balance) {
@@ -242,14 +286,12 @@ export function Aviator() {
 
         if (phase === 'waiting') {
             // Place bet IMMEDIATELY for CURRENT round
-            await supabase.from('zimbet_accounts')
-                .update({ balance: Math.floor(zimBetAccount.balance - amount) })
-                .eq('id', zimBetAccount.id)
-
-            setActiveBet(true)
-            setNextRoundBet(false)
-            refreshAccount()
-            setErrorMsg(null)
+            const success = await executeBetTransaction(amount)
+            if (success) {
+                setActiveBet(true)
+                setNextRoundBet(false)
+                setErrorMsg(null)
+            }
         } else {
             // Queue bet for NEXT round
             setNextRoundBet(true)

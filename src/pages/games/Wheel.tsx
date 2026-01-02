@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
 import { spinWheel, WHEEL_SEGMENTS, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio' // Sound
 import type { GameSession } from '../../lib/gameEngine'
 import './Wheel.css'
 
@@ -30,6 +31,7 @@ export function Wheel() {
         setIsSpinning(true)
         setResult(null)
         setMessage('')
+        soundManager.playAction() // Sound
 
         // Deduct bet (whole dollars)
         const wholeBet = Math.floor(betAmount)
@@ -60,6 +62,10 @@ export function Wheel() {
             const isWin = spinResult.multiplier > 0
 
             if (isWin) {
+                // Sound
+                if (spinResult.multiplier >= 5) soundManager.playJackpot()
+                else soundManager.playWin()
+
                 await supabase
                     .from('zimbet_accounts')
                     .update({
@@ -72,6 +78,7 @@ export function Wheel() {
                 setMessage(spinResult.multiplier >= 5 ? getRandomMessage('bigWin') : getRandomMessage('win'))
                 setSession(updateSession(session, wholeBet, winnings, true))
             } else {
+                soundManager.playLoss() // Sound
                 await supabase
                     .from('zimbet_accounts')
                     .update({

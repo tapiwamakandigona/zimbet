@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
 import { generateMinesGrid, calculateMinesMultiplier, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio' // Import audio
 import type { GameSession } from '../../lib/gameEngine'
 import './Mines.css'
 
@@ -42,6 +43,8 @@ export function Mines() {
             return
         }
 
+        soundManager.playAction() // Sound
+
         // Deduct bet
         await supabase
             .from('zimbet_accounts')
@@ -67,6 +70,7 @@ export function Mines() {
 
         if (minePositions[index]) {
             // Hit mine - game over
+            soundManager.playLoss() // Sound
             newTiles[index] = 'mine'
             // Reveal all mines
             minePositions.forEach((isMine, i) => {
@@ -80,6 +84,7 @@ export function Mines() {
             setSession(updateSession(session, betAmount, 0, false))
         } else {
             // Safe tile - gem found
+            soundManager.playGem() // Sound
             newTiles[index] = 'gem'
             setTiles(newTiles)
             setRevealedCount(prev => prev + 1)
@@ -89,6 +94,7 @@ export function Mines() {
     const cashout = async () => {
         if (!gameActive || revealedCount === 0) return
 
+        soundManager.playWin() // Sound
         const winnings = potentialWin
 
         // Add winnings
@@ -127,10 +133,23 @@ export function Mines() {
         setMessage('')
     }
 
+    const GemIcon = () => (
+        <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="#2ecc71" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 3h12l4 6-10 13L2 9z" fill="#2ecc71" fillOpacity="0.4" />
+        </svg>
+    )
+
+    const MineIcon = () => (
+        <svg viewBox="0 0 24 24" width="60%" height="60%" fill="none" stroke="#e74c3c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="6" fill="#e74c3c" fillOpacity="0.6" />
+            <path d="M12 2v4M12 18v4M22 12h-4M6 12H2M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M19.1 4.9l-2.8 2.8M7.7 16.3l-2.8 2.8" />
+        </svg>
+    )
+
     return (
         <div className="mines-page">
             <header className="game-header">
-                <button className="back-btn" onClick={() => navigate('/dashboard')}>
+                <button className="back-btn" onClick={() => navigate('/dashboard')} onMouseEnter={() => soundManager.playHover()}>
                     ← Back
                 </button>
                 <div className="game-title">
@@ -166,9 +185,10 @@ export function Mines() {
                             className={`tile ${tile}`}
                             onClick={() => revealTile(index)}
                             disabled={!gameActive || tile !== 'hidden'}
+                            onMouseEnter={() => gameActive && tile === 'hidden' && soundManager.playHover()}
                         >
-                            {tile === 'gem' && '💎'}
-                            {tile === 'mine' && '💣'}
+                            {tile === 'gem' && <GemIcon />}
+                            {tile === 'mine' && <MineIcon />}
                         </button>
                     ))}
                 </div>
@@ -196,7 +216,7 @@ export function Mines() {
                                     <button
                                         key={count}
                                         className={minesCount === count ? 'active' : ''}
-                                        onClick={() => setMinesCount(count)}
+                                        onClick={() => { setMinesCount(count); soundManager.playClick(); }}
                                     >
                                         {count}
                                     </button>
@@ -211,7 +231,7 @@ export function Mines() {
                                 {CASINO_BETS.slice(0, 6).map(amt => (
                                     <button
                                         key={amt}
-                                        onClick={() => setBetAmount(amt)}
+                                        onClick={() => { setBetAmount(amt); soundManager.playClick(); }}
                                         className={betAmount === amt ? 'active' : ''}
                                         disabled={amt > (zimBetAccount?.balance || 0)}
                                     >
@@ -230,7 +250,7 @@ export function Mines() {
                         </button>
                     </>
                 ) : gameOver ? (
-                    <button className="play-btn" onClick={resetGame}>
+                    <button className="play-btn" onClick={() => { resetGame(); soundManager.playClick(); }}>
                         Play Again
                     </button>
                 ) : (
