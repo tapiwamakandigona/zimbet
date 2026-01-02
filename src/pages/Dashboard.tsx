@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase, BET_TIERS } from '../lib/supabase'
 import type { BetTier } from '../lib/supabase'
 import { Leaderboard } from '../components/Leaderboard'
+import { Wallet } from '../components/Wallet'
 import './Dashboard.css'
 
 type BetPoolCount = {
@@ -292,38 +293,7 @@ export function Dashboard() {
                 {/* Wallet Tab */}
                 {activeTab === 'wallet' && (
                     <section className="wallet-section">
-                        <h3>💳 Wallet</h3>
-
-                        <div className="wallet-balance glass-card">
-                            <span className="wallet-label">Current Balance</span>
-                            <span className="wallet-amount">{formatCurrency(zimBetAccount?.balance || 0)}</span>
-                        </div>
-
-                        <div className="wallet-actions">
-                            <div className="wallet-action glass-card">
-                                <h4>➕ Add Funds</h4>
-                                <p>Fund your ZimBet account from ZimPay</p>
-                                <a
-                                    href="https://tapiwamakandigona.github.io/zimpay/"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn-primary"
-                                >
-                                    Open ZimPay
-                                </a>
-                                <p className="help-text">
-                                    Send funds to username: <strong>@{zimBetAccount?.username}</strong>
-                                </p>
-                            </div>
-
-                            <div className="wallet-action glass-card">
-                                <h4>➖ Withdraw</h4>
-                                <p>Send winnings back to ZimPay</p>
-                                <button className="btn-secondary" disabled>
-                                    Coming Soon
-                                </button>
-                            </div>
-                        </div>
+                        <Wallet />
                     </section>
                 )}
             </main>

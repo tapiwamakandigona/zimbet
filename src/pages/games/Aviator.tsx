@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
 import { generateAviatorCrashPoint, getRandomMessage, createSession, updateSession } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
+import { Confetti } from '../../components/Confetti'
 import './Aviator.css'
 
 type GamePhase = 'betting' | 'flying' | 'crashed' | 'cashout'
@@ -22,6 +23,7 @@ export function Aviator() {
     const [message, setMessage] = useState<string>('')
     const [history, setHistory] = useState<number[]>([])
     const [session, setSession] = useState<GameSession>(createSession())
+    const [showConfetti, setShowConfetti] = useState(false)
 
     // Animation refs
     const animationRef = useRef<number | undefined>(undefined)
@@ -120,6 +122,13 @@ export function Aviator() {
         setMessage(cashMult >= 3 ? getRandomMessage('bigWin') : getRandomMessage('win'))
         setSession(updateSession(session, betAmount, winnings, true))
         setPhase('cashout')
+
+        // Trigger confetti on big wins
+        if (cashMult >= 3) {
+            setShowConfetti(true)
+            setTimeout(() => setShowConfetti(false), 3500)
+        }
+
         refreshAccount()
 
         // Auto-continue to show crash after cashout
@@ -189,6 +198,7 @@ export function Aviator() {
 
     return (
         <div className="aviator-page">
+            <Confetti trigger={showConfetti} />
             {/* Header */}
             <header className="game-header">
                 <button className="back-btn" onClick={() => navigate('/dashboard')}>
