@@ -100,6 +100,15 @@ export function Leaderboard() {
                 </button>
             </div>
 
+            {/* Leaderboard Header */}
+            <div className="leaderboard-header-row">
+                <span className="col-rank">Rank</span>
+                <span className="col-player">Player</span>
+                <span className="col-stat">
+                    {sortBy === 'wins' ? 'Wins' : sortBy === 'earnings' ? 'Profit' : 'Win %'}
+                </span>
+            </div>
+
             {/* Leaderboard List */}
             {loading ? (
                 <div className="leaderboard-loading">
