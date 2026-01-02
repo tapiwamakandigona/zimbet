@@ -61,35 +61,49 @@ export function Dashboard() {
     }
 
     const handleCreateAccount = async () => {
-        if (!newUsername.trim()) {
+        const trimmed = newUsername.trim().toLowerCase().replace(/^zm-/, '')
+
+        if (!trimmed) {
             setUsernameError('Username is required')
             return
         }
-        if (newUsername.length < 3) {
+        if (trimmed.length < 3) {
             setUsernameError('Username must be at least 3 characters')
             return
         }
-        if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
-            setUsernameError('Username can only contain letters, numbers, and underscores')
+        if (trimmed.length > 15) {
+            setUsernameError('Username must be 15 characters or less')
+            return
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+            setUsernameError('Only letters, numbers, and underscores allowed')
+            return
+        }
+        if (/^[0-9]/.test(trimmed)) {
+            setUsernameError('Username cannot start with a number')
             return
         }
 
         setCreating(true)
         setUsernameError('')
 
-        const { error } = await createZimBetAccount(newUsername)
+        try {
+            const { error } = await createZimBetAccount(trimmed)
 
-        if (error) {
-            if (error.message.includes('duplicate')) {
-                setUsernameError('Username already taken')
-            } else {
-                setUsernameError(error.message)
+            if (error) {
+                if (error.message.includes('duplicate') || error.message.includes('unique')) {
+                    setUsernameError('Username already taken, try another')
+                } else if (error.message.includes('permission') || error.message.includes('policy')) {
+                    setUsernameError('Permission denied. Please re-login.')
+                } else {
+                    setUsernameError(error.message || 'Failed to create account')
+                }
             }
-        } else {
-            // Account created successfully
+        } catch (err) {
+            setUsernameError('Network error. Please try again.')
+        } finally {
+            setCreating(false)
         }
-
-        setCreating(false)
     }
 
     const handleSelectBet = (tier: BetTier) => {
@@ -127,18 +141,22 @@ export function Dashboard() {
 
                         {usernameError && <div className="error-msg">{usernameError}</div>}
 
-                        <input
-                            type="text"
-                            value={newUsername}
-                            onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
-                            placeholder="Enter username"
-                            maxLength={20}
-                        />
+                        <div className="username-input-wrapper">
+                            <span className="prefix">zm-</span>
+                            <input
+                                type="text"
+                                value={newUsername}
+                                onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                                placeholder="your_username"
+                                maxLength={15}
+                            />
+                        </div>
+                        <p className="preview-text">Your username: <strong>zm-{newUsername || 'username'}</strong></p>
 
                         <button
                             className="btn-primary"
                             onClick={handleCreateAccount}
-                            disabled={creating}
+                            disabled={creating || newUsername.length < 3}
                         >
                             {creating ? 'Creating...' : 'Create Account'}
                         </button>

@@ -88,12 +88,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const createZimBetAccount = async (username: string) => {
         if (!user) return { error: new Error('Not logged in') }
 
+        // Add zm- prefix to avoid conflicts with ZimPay usernames
+        const prefixedUsername = `zm-${username.toLowerCase().replace(/^zm-/, '')}`
+
         const { error } = await supabase
             .from('zimbet_accounts')
             .insert({
                 user_id: user.id,
-                username: username.toLowerCase(),
-                balance: 0,
+                username: prefixedUsername,
+                balance: 100, // Starting bonus for testing
                 total_wins: 0,
                 total_losses: 0,
                 total_earnings: 0

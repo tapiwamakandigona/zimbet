@@ -279,19 +279,41 @@ export function Game() {
         setTimeout(async () => {
             const winner = getWinner(my, opp)
 
+            // Fetch current balance first to avoid stale data
+            let currentBalance = zimBetAccount?.balance || 0
+            let currentTotalWins = zimBetAccount?.total_wins || 0
+            let currentTotalLosses = zimBetAccount?.total_losses || 0
+            let currentTotalEarnings = zimBetAccount?.total_earnings || 0
+
+            if (zimBetAccount) {
+                const { data } = await supabase
+                    .from('zimbet_accounts')
+                    .select('balance, total_wins, total_losses, total_earnings')
+                    .eq('id', zimBetAccount.id)
+                    .single()
+                if (data) {
+                    currentBalance = data.balance
+                    currentTotalWins = data.total_wins || 0
+                    currentTotalLosses = data.total_losses || 0
+                    currentTotalEarnings = data.total_earnings || 0
+                }
+            }
+
             if (winner === 'p1') {
                 setResult('win')
-                const winnings = betAmount * 2 * (1 - HOUSE_FEE_PERCENT / 100)
-                setEarnings(winnings)
+                // Winner gets 90% of pot (both bets combined)
+                const potTotal = betAmount * 2
+                const winnings = potTotal * (1 - HOUSE_FEE_PERCENT / 100)
+                const netProfit = winnings - betAmount
+                setEarnings(netProfit)
 
-                // Update account
                 if (zimBetAccount) {
                     await supabase
                         .from('zimbet_accounts')
                         .update({
-                            balance: zimBetAccount.balance + winnings,
-                            total_wins: (zimBetAccount.total_wins || 0) + 1,
-                            total_earnings: (zimBetAccount.total_earnings || 0) + winnings - betAmount
+                            balance: currentBalance + winnings,
+                            total_wins: currentTotalWins + 1,
+                            total_earnings: currentTotalEarnings + netProfit
                         })
                         .eq('id', zimBetAccount.id)
                 }
@@ -303,8 +325,8 @@ export function Game() {
                     await supabase
                         .from('zimbet_accounts')
                         .update({
-                            total_losses: (zimBetAccount.total_losses || 0) + 1,
-                            total_earnings: (zimBetAccount.total_earnings || 0) - betAmount
+                            total_losses: currentTotalLosses + 1,
+                            total_earnings: currentTotalEarnings - betAmount
                         })
                         .eq('id', zimBetAccount.id)
                 }
@@ -312,11 +334,11 @@ export function Game() {
                 setResult('draw')
                 setEarnings(0)
 
-                // Refund on draw
+                // Draw: refund the bet
                 if (zimBetAccount) {
                     await supabase
                         .from('zimbet_accounts')
-                        .update({ balance: zimBetAccount.balance + betAmount })
+                        .update({ balance: currentBalance + betAmount })
                         .eq('id', zimBetAccount.id)
                 }
             }
