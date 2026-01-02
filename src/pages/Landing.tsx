@@ -235,7 +235,12 @@ export function Landing() {
               <div className="footer-col">
                 <h4>Platform</h4>
                 <Link to="/login">Login</Link>
-                <Link to="/login">Join Now</Link>
+                <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">Register via ZimPay</a>
+              </div>
+              <div className="footer-col">
+                <h4>Games</h4>
+                <span onClick={() => handleGameClick('/casino/aviator')} style={{ cursor: 'pointer' }}>Aviator</span>
+                <span onClick={() => handleGameClick('/casino/mines')} style={{ cursor: 'pointer' }}>Mines</span>
               </div>
               <div className="footer-col">
                 <h4>Ecosystem</h4>

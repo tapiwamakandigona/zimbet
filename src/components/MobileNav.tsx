@@ -58,6 +58,13 @@ export function MobileNav() {
                                 <span>🪙</span> Coinflip
                             </button>
                             <div className="mobile-menu-divider"></div>
+                            <button onClick={() => { navigate('/dashboard?view=wallet'); setShowMenu(false) }} className="mobile-menu-section">
+                                <span>💳</span> Wallet
+                            </button>
+                            <button onClick={() => { navigate('/dashboard?view=leaderboard'); setShowMenu(false) }} className="mobile-menu-section">
+                                <span>🏆</span> Leaderboard
+                            </button>
+                            <div className="mobile-menu-divider"></div>
                             <button className="mobile-menu-logout" onClick={handleSignOut}>
                                 <span>🚪</span> Sign Out
                             </button>

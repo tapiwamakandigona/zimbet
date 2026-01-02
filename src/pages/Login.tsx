@@ -159,6 +159,10 @@ export function Login() {
                 <div className="disclaimer">
                     <p>🎮 Play responsibly. This is a simulation.</p>
                 </div>
+
+                <div className="back-link">
+                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/') }}>← Back to Home</a>
+                </div>
             </div>
         </div>
     )

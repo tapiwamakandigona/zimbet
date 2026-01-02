@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Wallet } from '../components/Wallet'
 import { Leaderboard } from '../components/Leaderboard'
@@ -16,8 +16,19 @@ function formatUsername(username: string): string {
 export function FeatureDashboard() {
     const { zimBetAccount, signOut } = useAuth()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
     const [view, setView] = useState<'games' | 'wallet' | 'leaderboard'>('games')
     const [muted, setMuted] = useState(soundManager.isMuted())
+
+    // Read view from URL params (for mobile menu deep links)
+    useEffect(() => {
+        const viewParam = searchParams.get('view')
+        if (viewParam === 'wallet' || viewParam === 'leaderboard') {
+            setView(viewParam)
+            // Clear the param so it doesn't persist
+            setSearchParams({}, { replace: true })
+        }
+    }, [searchParams, setSearchParams])
 
     const toggleMute = () => {
         setMuted(soundManager.toggleMute())

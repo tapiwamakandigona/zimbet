@@ -296,3 +296,19 @@
         padding: 24px;
     }
 }
+
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-link a {
+    color: #64748b;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.back-link a:hover {
+    color: #94a3b8;
+}
