@@ -5,10 +5,17 @@ import { Wallet } from '../components/Wallet'
 import { Leaderboard } from '../components/Leaderboard'
 import './FeatureDashboard.css'
 
+import { soundManager } from '../lib/audio'
+
 export function FeatureDashboard() {
     const { zimBetAccount, signOut } = useAuth()
     const navigate = useNavigate()
     const [view, setView] = useState<'games' | 'wallet' | 'leaderboard'>('games')
+    const [muted, setMuted] = useState(soundManager.isMuted())
+
+    const toggleMute = () => {
+        setMuted(soundManager.toggleMute())
+    }
 
     const GAMES = [
         { id: 'aviator', name: 'Aviator', desc: 'Predict the crash point', image: '✈️', color: '#e23333', link: '/casino/aviator' },
@@ -56,6 +63,9 @@ export function FeatureDashboard() {
                         <span>💳</span> Wallet
                     </button>
                     <div style={{ flex: 1 }}></div>
+                    <button className="fd-nav-item" onClick={toggleMute}>
+                        <span>{muted ? '🔇' : '🔊'}</span> {muted ? 'Unmute Sounds' : 'Mute Sounds'}
+                    </button>
                     <button className="fd-nav-item" onClick={signOut}>
                         <span>🚪</span> Sign Out
                     </button>

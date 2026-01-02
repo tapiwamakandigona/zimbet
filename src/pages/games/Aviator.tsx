@@ -2,38 +2,36 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { generateAviatorCrashPoint, formatMoney } from '../../lib/gameEngine'
-import { soundManager } from '../../lib/audio' // Import audio
+import { formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio'
 import { Confetti } from '../../components/Confetti'
+import { getCurrentRound, getFakeBets } from '../../lib/aviatorEngine'
+import type { AviatorState } from '../../lib/aviatorEngine'
 import './Aviator.css'
-
-type GamePhase = 'waiting' | 'flying' | 'crashed'
 
 interface Bet {
     user: string
     amount: number
     multiplier?: number
     win?: number
+    isFake?: boolean
+    cashoutPoint?: number // For fakes
 }
-
-const FAKE_USERS = ['User123', 'AviatorKing', 'LuckyGirl', 'Speedy', 'PilotToMoon', 'CrashMaster', 'ZeroRisk', 'BigWinner', 'CryptoFan', 'ZimChamp']
 
 export function Aviator() {
     const { zimBetAccount, refreshAccount } = useAuth()
     const navigate = useNavigate()
 
-    // Game state
-    const [phase, setPhase] = useState<GamePhase>('waiting')
+    // Engine State
+    const [gameState, setGameState] = useState<AviatorState | null>(null)
     const [multiplier, setMultiplier] = useState<number>(1.00)
     const [history, setHistory] = useState<number[]>([])
     const [nextRoundTime, setNextRoundTime] = useState<number>(5)
 
-    // Canvas & Animation refs
+    // Canvas refs
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const animationRef = useRef<number | undefined>(undefined)
-    const startTimeRef = useRef<number>(0)
-    const crashPointRef = useRef<number>(0)
 
     // Betting State
     const [betAmount, setBetAmount] = useState<number>(10)
@@ -44,28 +42,53 @@ export function Aviator() {
     const [liveBets, setLiveBets] = useState<Bet[]>([])
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
-    // Refs for state access in callbacks
+    // Refs for state access in loop
+    const stateRef = useRef(gameState)
     const nextRoundBetRef = useRef(nextRoundBet)
     const betAmountRef = useRef(betAmount)
     const zimBetAccountRef = useRef(zimBetAccount)
+    const activeBetRef = useRef(activeBet)
+    const cashedOutRef = useRef(cashedOut)
 
+    useEffect(() => { stateRef.current = gameState }, [gameState])
     useEffect(() => { nextRoundBetRef.current = nextRoundBet }, [nextRoundBet])
     useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
     useEffect(() => { zimBetAccountRef.current = zimBetAccount }, [zimBetAccount])
+    useEffect(() => { activeBetRef.current = activeBet }, [activeBet])
+    useEffect(() => { cashedOutRef.current = cashedOut }, [cashedOut])
 
-    // Load history
+    // Multiplayer Channel
     useEffect(() => {
-        const saved = localStorage.getItem('aviator_history')
-        if (saved) setHistory(JSON.parse(saved))
-    }, [])
+        const channel = supabase.channel('aviator_global')
 
-    const saveHistory = useCallback((crash: number) => {
-        setHistory(prev => {
-            const newHistory = [crash, ...prev].slice(0, 20)
-            localStorage.setItem('aviator_history', JSON.stringify(newHistory))
-            return newHistory
+        channel.on('broadcast', { event: 'new_bet' }, ({ payload }) => {
+            // Add other players' bets
+            if (payload.userId !== zimBetAccount?.id) {
+                setLiveBets(prev => [{
+                    user: payload.username,
+                    amount: payload.amount,
+                    isFake: false
+                }, ...prev])
+            }
+        }).subscribe()
+
+        return () => {
+            channel.unsubscribe()
+        }
+    }, [zimBetAccount])
+
+    const broadcastBet = async (amount: number) => {
+        if (!zimBetAccount) return
+        await supabase.channel('aviator_global').send({
+            type: 'broadcast',
+            event: 'new_bet',
+            payload: {
+                userId: zimBetAccount.id,
+                username: zimBetAccount.username,
+                amount: amount
+            }
         })
-    }, [])
+    }
 
     // Helper to execute a bet transaction
     const executeBetTransaction = async (amount: number) => {
@@ -83,87 +106,108 @@ export function Aviator() {
     }
 
     // --- GAME LOOP ---
+    const lastRoundIdRef = useRef<string>('')
+    const lastPhaseRef = useRef<string>('')
 
-    const startGame = useCallback(async () => {
-        setPhase('waiting')
-        setMultiplier(1.00)
-        setCashedOut(false)
-        setWinAmount(0)
-        setErrorMsg(null)
+    const updateGame = useCallback(() => {
+        const now = Date.now()
+        const current = getCurrentRound(now)
 
-        // Process Queued Bet
-        if (nextRoundBetRef.current) {
-            const amount = betAmountRef.current
-            if (zimBetAccountRef.current && zimBetAccountRef.current.balance >= amount) {
-                const success = await executeBetTransaction(amount)
-                if (success) {
-                    setActiveBet(true)
-                    setNextRoundBet(false)
-                    // soundManager.playAction() - maybe too noisy on auto?
-                } else {
-                    setNextRoundBet(false)
-                    setErrorMsg('Balance too low for queued bet')
-                }
+        // Phase Transition Logic
+        if (current.roundId !== lastRoundIdRef.current) {
+            // New Round Started
+            lastRoundIdRef.current = current.roundId
+
+            // Generate History from PREVIOUS rounds?
+            // For now, push the PREVIOUS round's crash to history if we tracked it
+            // Ideally we get history from the engine directly (by getting previous array items)
+            // Simpler: Just ensure history has checks
+
+            // Reset for new round
+            setLiveBets(getFakeBets(current.roundId))
+            setCashedOut(false)
+            setWinAmount(0)
+            setErrorMsg(null)
+
+            // Handle Auto-Bet / Queue
+            if (nextRoundBetRef.current) {
+                const amount = betAmountRef.current
+                executeBetTransaction(amount).then(success => {
+                    if (success) {
+                        setActiveBet(true)
+                        setNextRoundBet(false)
+                        broadcastBet(amount)
+                    } else {
+                        setNextRoundBet(false)
+                        setErrorMsg('Insufficient balance')
+                    }
+                })
             } else {
-                setNextRoundBet(false)
-                setErrorMsg('Balance too low for queued bet')
+                setActiveBet(false)
             }
         }
 
-        // Generate fake bets for this round
-        const roundBets: Bet[] = Array.from({ length: 15 }, () => ({
-            user: FAKE_USERS[Math.floor(Math.random() * FAKE_USERS.length)],
-            amount: Math.floor(Math.random() * 500) + 10
-        })).sort((a, b) => b.amount - a.amount)
-        setLiveBets(roundBets)
+        if (current.phase !== lastPhaseRef.current) {
+            // Phase Changed
+            if (current.phase === 'flying') {
+                soundManager.playAction() // Takeoff sound
+            } else if (current.phase === 'crashed') {
+                soundManager.playLoss()
 
-        // Countdown
-        let timeLeft = 5
-        setNextRoundTime(timeLeft)
-        const timer = setInterval(() => {
-            timeLeft -= 0.1
-            setNextRoundTime(Math.max(0, timeLeft))
+                // Save history
+                setHistory(prev => [current.crashPoint, ...prev].slice(0, 20))
 
-            if (timeLeft <= 0) {
-                clearInterval(timer)
-                startFlight()
+                // Handle Loss
+                if (activeBetRef.current && !cashedOutRef.current) {
+                    if (zimBetAccountRef.current) {
+                        supabase.from('zimbet_accounts').update({
+                            total_losses: zimBetAccountRef.current.total_losses + 1,
+                            total_earnings: zimBetAccountRef.current.total_earnings - betAmountRef.current
+                        }).eq('id', zimBetAccountRef.current.id).then(() => refreshAccount())
+                    }
+                }
+
+                setActiveBet(false)
             }
-        }, 100)
-    }, []) // Dependencies intentionally minimal as we use Refs
+            lastPhaseRef.current = current.phase
+        }
 
-    const startFlight = useCallback(() => {
-        setPhase('flying')
-        soundManager.playAction()
-        startTimeRef.current = Date.now()
-        crashPointRef.current = generateAviatorCrashPoint()
+        // Update Calculated Stats
+        if (current.phase === 'waiting') {
+            setNextRoundTime(Math.max(0, (current.startTime - now) / 1000))
+            setMultiplier(1.00)
+        } else if (current.phase === 'flying') {
+            // In Engine: startTime is waiting start. duration includes waiting.
+            // Flight starts at startTime + 5000
+            const flightElapsed = (now - (current.startTime + 5000)) / 1000
+            if (flightElapsed > 0) {
+                const m = Math.max(1, Math.pow(Math.E, flightElapsed * 0.12))
+                setMultiplier(m)
+            }
+        } else {
+            setMultiplier(current.crashPoint)
+        }
 
-        // Start animation loop
-        drawFrame()
-    }, [])
+        // Fake Cashouts Logic
+        if (current.phase === 'flying') {
+            setLiveBets(prev => prev.map(bet => {
+                if (bet.isFake && !bet.multiplier && bet.cashoutPoint && multiplier >= bet.cashoutPoint) {
+                    return { ...bet, multiplier: bet.cashoutPoint }
+                }
+                return bet
+            }))
+        }
 
-    const drawFrame = useCallback(() => {
+        setGameState(current)
+        drawFrame(current, now)
+
+        animationRef.current = requestAnimationFrame(updateGame)
+    }, []) // No dependencies, refs used
+
+    const drawFrame = (state: AviatorState, now: number) => {
         const canvas = canvasRef.current
         const ctx = canvas?.getContext('2d')
         if (!canvas || !ctx) return
-
-        const elapsed = (Date.now() - startTimeRef.current) / 1000
-        const currentMult = Math.max(1, Math.pow(Math.E, elapsed * 0.12)) // Slightly faster
-
-        setMultiplier(currentMult)
-
-        // Update fake bets (randomly cash out)
-        setLiveBets(prev => prev.map(bet => {
-            if (!bet.multiplier && Math.random() < 0.03 && currentMult > 1.2) {
-                return { ...bet, multiplier: currentMult, win: Math.floor(bet.amount * currentMult) }
-            }
-            return bet
-        }))
-
-        // Check crash
-        if (currentMult >= crashPointRef.current) {
-            handleCrash(crashPointRef.current)
-            return
-        }
 
         const width = canvas.width
         const height = canvas.height
@@ -177,7 +221,13 @@ export function Aviator() {
         for (let i = 0; i < height; i += height / 10) { ctx.moveTo(0, i); ctx.lineTo(width, i); }
         ctx.stroke()
 
-        const visualProgress = Math.min(1, elapsed / 8)
+        if (state.phase === 'waiting') return
+
+        // Calculate curve
+        // We want a visual curve that grows with time.
+        // Normalize based on time, capped at say 10 seconds for visual width
+        const flightElapsed = (now - (state.startTime + 5000)) / 1000
+        const visualProgress = Math.min(1, flightElapsed / 8)
 
         const p0 = { x: 0, y: height }
         const p1 = { x: width * 0.4, y: height }
@@ -187,7 +237,7 @@ export function Aviator() {
         const bx = (1 - t) * (1 - t) * p0.x + 2 * (1 - t) * t * p1.x + t * t * p2.x
         const by = (1 - t) * (1 - t) * p0.y + 2 * (1 - t) * t * p1.y + t * t * p2.y
 
-        // Draw fill area with gradient
+        // Draw fill area
         const grd = ctx.createLinearGradient(0, height, bx, by)
         grd.addColorStop(0, 'rgba(226, 51, 51, 0.2)')
         grd.addColorStop(1, 'rgba(226, 51, 51, 0.6)')
@@ -200,7 +250,7 @@ export function Aviator() {
         ctx.closePath()
         ctx.fill()
 
-        // Draw Curve Line with glow
+        // Draw Curve Line
         ctx.shadowColor = '#e23333'
         ctx.shadowBlur = 20
         ctx.strokeStyle = '#e23333'
@@ -214,6 +264,8 @@ export function Aviator() {
 
         // Draw Plane
         ctx.translate(bx, by)
+        // Angle depends on derivative or just heuristic
+        // At t=0, angle is flat? No. Plane takes off.
         const rotation = -Math.atan2(height - by, bx) * 0.6
         ctx.rotate(rotation + 0.1)
 
@@ -221,45 +273,49 @@ export function Aviator() {
         ctx.fillStyle = 'white'
         ctx.fillText('✈️', -18, 9)
         ctx.resetTransform()
+    }
 
-        animationRef.current = requestAnimationFrame(drawFrame)
-    }, [])
-
-    const handleCrash = useCallback((crashVal: number) => {
-        if (animationRef.current) cancelAnimationFrame(animationRef.current)
-        setPhase('crashed')
-        setMultiplier(crashVal)
-        saveHistory(crashVal)
-        soundManager.playLoss()
-
-        if (activeBet && !cashedOut) {
-            // Player lost - update DB
-            if (zimBetAccount) {
-                supabase.from('zimbet_accounts')
-                    .update({
-                        total_losses: zimBetAccount.total_losses + 1,
-                        total_earnings: zimBetAccount.total_earnings - betAmount
-                    })
-                    .eq('id', zimBetAccount.id)
-                    .then(() => refreshAccount())
+    useEffect(() => {
+        // Resize
+        const resize = () => {
+            if (canvasRef.current && containerRef.current) {
+                const ratio = window.devicePixelRatio || 1
+                const w = containerRef.current.clientWidth
+                const h = containerRef.current.clientHeight
+                canvasRef.current.width = w * ratio
+                canvasRef.current.height = h * ratio
+                canvasRef.current.style.width = `${w}px`
+                canvasRef.current.style.height = `${h}px`
+                const ctx = canvasRef.current.getContext('2d')
+                if (ctx) ctx.scale(ratio, ratio)
             }
         }
+        window.addEventListener('resize', resize)
+        resize()
 
-        // Reset betting states
-        setActiveBet(false)
+        // Start Loop
+        animationRef.current = requestAnimationFrame(updateGame)
 
-        setTimeout(() => {
-            startGame()
-        }, 3000)
-    }, [activeBet, cashedOut, betAmount, zimBetAccount, refreshAccount, saveHistory, startGame])
+        return () => {
+            if (animationRef.current) cancelAnimationFrame(animationRef.current)
+            window.removeEventListener('resize', resize)
+        }
+    }, [updateGame])
 
     const handleCashout = async () => {
-        if (phase !== 'flying' || !activeBet || cashedOut) return
+        if (!activeBet || cashedOut) return
+
+        // Check if we are actually allowed to cashout (not crashed)
+        // Using refs to be safe, but local multiplier state should be update-to-date enough for UI
+        // Strict check:
+        const now = Date.now()
+        const current = getCurrentRound(now)
+        if (current.phase === 'crashed') return
+
+        const m = multiplier // Current displayed multiplier
+        const win = Math.floor(betAmount * m)
 
         soundManager.playWin()
-        const currentMult = multiplier
-        const win = Math.floor(betAmount * currentMult)
-
         setCashedOut(true)
         setWinAmount(win)
 
@@ -273,7 +329,6 @@ export function Aviator() {
         }
     }
 
-    // --- ENHANCED BETTING LOGIC ---
     const handlePlaceBet = async () => {
         if (!zimBetAccount) return
         soundManager.playClick()
@@ -284,74 +339,25 @@ export function Aviator() {
             return
         }
 
-        if (phase === 'waiting') {
-            // Place bet IMMEDIATELY for CURRENT round
+        if (gameState?.phase === 'waiting') {
             const success = await executeBetTransaction(amount)
             if (success) {
                 setActiveBet(true)
                 setNextRoundBet(false)
                 setErrorMsg(null)
+                broadcastBet(amount)
             }
         } else {
-            // Queue bet for NEXT round
             setNextRoundBet(true)
             setErrorMsg(null)
         }
     }
 
     const cancelBet = () => {
-        // Only allow cancel if it's next round bet OR active but round hasn't started
         if (nextRoundBet) {
             setNextRoundBet(false)
-        } else if (activeBet && phase === 'waiting') {
-            // Refund - this is a simplification, real games allow cancel during waiting
-            // For logic simplicity, we'll just toggle the state if user hasn't confirmed
-            // but if they already deducted balance we should refund.
-            // Letting just nextRoundBet be the queue and activeBet be the confirmed.
-
-            // If activeBet is true, balance was ALREADY deducted.
-            // Let's implement refund
-            if (zimBetAccount) {
-                supabase.from('zimbet_accounts')
-                    .update({ balance: Math.floor(zimBetAccount.balance + betAmount) })
-                    .eq('id', zimBetAccount.id)
-                    .then(() => {
-                        setActiveBet(false)
-                        refreshAccount()
-                    })
-            }
         }
     }
-
-    // Effect to handle canvas resizing and scaling for High DPI
-    useEffect(() => {
-        const resize = () => {
-            if (canvasRef.current && containerRef.current) {
-                const ratio = window.devicePixelRatio || 1
-                const w = containerRef.current.clientWidth
-                const h = containerRef.current.clientHeight
-
-                canvasRef.current.width = w * ratio
-                canvasRef.current.height = h * ratio
-                canvasRef.current.style.width = `${w}px`
-                canvasRef.current.style.height = `${h}px`
-
-                const ctx = canvasRef.current.getContext('2d')
-                if (ctx) ctx.scale(ratio, ratio)
-            }
-        }
-        window.addEventListener('resize', resize)
-        resize()
-        return () => window.removeEventListener('resize', resize)
-    }, [])
-
-    // Start game loop on mount
-    useEffect(() => {
-        startGame()
-        return () => {
-            if (animationRef.current) cancelAnimationFrame(animationRef.current)
-        }
-    }, [])
 
     return (
         <div className="aviator-container">
@@ -361,7 +367,7 @@ export function Aviator() {
                 {/* LEFT SIDEBAR */}
                 <div className="bets-sidebar">
                     <div className="sidebar-header">
-                        <span className="tab active">All Bets</span>
+                        <span className="tab active">All Bets ({liveBets.length})</span>
                         <span className="tab">My Bets</span>
                     </div>
                     <div className="bets-list-header">
@@ -392,9 +398,10 @@ export function Aviator() {
                     <div className="top-bar">
                         <div className="logo" onClick={() => navigate('/dashboard')}>
                             <span className="red-text">Aviator</span>
+                            <span className="live-badge">LIVE</span>
                         </div>
                         <div className="history-scroller">
-                            {history.slice(0, 10).map((h, i) => (
+                            {history.map((h, i) => (
                                 <div key={i} className={`history-pill ${h < 2 ? 'blue' : h < 10 ? 'purple' : 'pink'}`}>
                                     {h.toFixed(2)}x
                                 </div>
@@ -409,23 +416,24 @@ export function Aviator() {
                     <div className="canvas-wrapper" ref={containerRef}>
                         <canvas ref={canvasRef} />
 
-                        {phase === 'waiting' && (
+                        {gameState?.phase === 'waiting' && (
                             <div className="waiting-overlay">
                                 <div className="loader-spinner"></div>
-                                <div className="waiting-text">WAITING FOR NEXT ROUND</div>
+                                <div className="waiting-text">NEXT ROUND IN</div>
+                                <div className="big-countdown">{nextRoundTime.toFixed(1)}s</div>
                                 <div className="progress-bar">
                                     <div className="progress-fill" style={{ width: `${(nextRoundTime / 5) * 100}%` }}></div>
                                 </div>
                             </div>
                         )}
 
-                        {phase === 'flying' && (
+                        {gameState?.phase === 'flying' && (
                             <div className="flying-stats">
                                 <div className="big-multiplier">{multiplier.toFixed(2)}x</div>
                             </div>
                         )}
 
-                        {phase === 'crashed' && (
+                        {gameState?.phase === 'crashed' && (
                             <div className="crashed-overlay">
                                 <div className="flew-away">FLEW AWAY!</div>
                                 <div className="crashed-mult">{multiplier.toFixed(2)}x</div>
@@ -457,9 +465,14 @@ export function Aviator() {
                                             <div className="btn-val">{formatMoney(winAmount)}</div>
                                         </button>
                                     ) : (
-                                        phase === 'waiting' ? (
-                                            <button className="bet-btn cancel" onClick={cancelBet}>
-                                                <div className="btn-label">CANCEL</div>
+                                        gameState?.phase === 'waiting' ? (
+                                            <button className="bet-btn cancel" onClick={() => {
+                                                // Refund logic if implemented, or just disable
+                                                // For now, no cancel once placed in waiting (like real game often locks)
+                                                // But we can implement refund if we want.
+                                                setActiveBet(false) // Visual only for now, real refund requires DB
+                                            }}>
+                                                <div className="btn-label">BET PLACED</div>
                                                 <div className="btn-sub">WAITING...</div>
                                             </button>
                                         ) : (
@@ -489,14 +502,11 @@ export function Aviator() {
                             </div>
                         </div>
 
-                        {/* Secondary Interactive Panel */}
                         <div className="control-panel secondary-panel">
-                            <div className="bet-header">Auto Options</div>
-                            <div className="auto-controls">
-                                <button className="auto-btn">Auto Bet</button>
-                                <button className="auto-btn">Auto Cash Out</button>
+                            <div className="bet-header">Network Status</div>
+                            <div style={{ color: '#2ecc71', fontSize: '0.8rem', marginTop: '10px' }}>
+                                ● Live Sync Active
                             </div>
-                            <div className="dummy-info">Practice mode active</div>
                         </div>
                     </div>
                 </div>

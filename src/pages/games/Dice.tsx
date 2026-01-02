@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
 import { rollDice, calculateDiceMultiplier, getRandomMessage, isNearMiss, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio' // Sound
 import type { GameSession } from '../../lib/gameEngine'
 import './Dice.css'
 
@@ -34,6 +35,7 @@ export function Dice() {
         setDiceResult(null)
         setIsWin(null)
         setMessage('')
+        soundManager.playAction()
 
         // Deduct bet
         await supabase
@@ -50,6 +52,7 @@ export function Dice() {
             setIsWin(won)
 
             if (won) {
+                soundManager.playWin()
                 const winnings = betAmount * multiplier
 
                 await supabase
@@ -64,6 +67,7 @@ export function Dice() {
                 setMessage(multiplier >= 5 ? getRandomMessage('bigWin') : getRandomMessage('win'))
                 setSession(updateSession(session, betAmount, winnings, true))
             } else {
+                soundManager.playLoss()
                 await supabase
                     .from('zimbet_accounts')
                     .update({
@@ -92,7 +96,7 @@ export function Dice() {
     return (
         <div className="dice-page">
             <header className="game-header">
-                <button className="back-btn" onClick={() => navigate('/dashboard')}>
+                <button className="back-btn" onClick={() => navigate('/dashboard')} onMouseEnter={() => soundManager.playHover()}>
                     ← Back
                 </button>
                 <div className="game-title">

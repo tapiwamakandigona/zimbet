@@ -7,31 +7,31 @@ export function Landing() {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-bg">
-          <div className="floating-emoji e1">🪨</div>
-          <div className="floating-emoji e2">📄</div>
-          <div className="floating-emoji e3">✂️</div>
-          <div className="floating-emoji e4">💰</div>
-          <div className="floating-emoji e5">🏆</div>
+          <div className="game-floater g1">✈️</div>
+          <div className="game-floater g2">💣</div>
+          <div className="game-floater g3">🎰</div>
+          <div className="game-floater g4">🎲</div>
+          <div className="game-floater g5">🪙</div>
         </div>
-        
+
         <div className="hero-content">
           <div className="logo-badge">
-            <span className="logo-icon">🎰</span>
+            <span className="logo-icon">Z</span>
           </div>
-          <h1>ZimBet</h1>
-          <p className="tagline">Rock Paper Scissors.<br />Real Stakes. Real Wins.</p>
-          
+          <h1>ZimBet <span className="highlight">Casino</span></h1>
+          <p className="tagline">Play Smart. Win Big. Live Forever.</p>
+
           <div className="hero-cta">
-            <Link to="/login" className="btn-primary">
-              <span>🎮</span> Play Now
+            <Link to="/login" className="btn-primary pulse">
+              <span>🚀</span> Play Aviator Live
             </Link>
-            <a href="#how-it-works" className="btn-secondary">
-              Learn More
+            <a href="#games" className="btn-secondary">
+              See All Games
             </a>
           </div>
 
           <div className="powered-by">
-            <span>Powered by</span>
+            <span>Secure Ecosystem by</span>
             <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">
               💳 ZimPay
             </a>
@@ -39,89 +39,74 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="stats-section">
-        <div className="stat-card">
-          <span className="stat-icon">💰</span>
-          <span className="stat-value">$10-$500</span>
-          <span className="stat-label">Bet Tiers</span>
+      {/* Live Stats Ticker */}
+      <div className="ticker-wrap">
+        <div className="ticker">
+          <div className="ticker-item">🔥 Aviator: 540x Multiplier Just Hit!</div>
+          <div className="ticker-item">💎 Mines: $5,000 Jackpot Won</div>
+          <div className="ticker-item">🎰 Wheel: 50x Gold Segment Active</div>
+          <div className="ticker-item">🚀 1,204 Players Online</div>
+          <div className="ticker-item">🔥 Aviator: 540x Multiplier Just Hit!</div>
+          <div className="ticker-item">💎 Mines: $5,000 Jackpot Won</div>
         </div>
-        <div className="stat-card">
-          <span className="stat-icon">⚡</span>
-          <span className="stat-value">10s</span>
-          <span className="stat-label">Quick Matches</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-icon">🏆</span>
-          <span className="stat-value">90%</span>
-          <span className="stat-label">Winner Payout</span>
-        </div>
-      </section>
+      </div>
 
-      {/* How It Works */}
-      <section id="how-it-works" className="how-section">
-        <h2>How It Works</h2>
-        <div className="steps">
-          <div className="step">
-            <div className="step-number">1</div>
-            <div className="step-icon">💳</div>
-            <h3>Connect ZimPay</h3>
-            <p>Login with your ZimPay credentials and fund your account</p>
+      {/* Featured Games */}
+      <section id="games" className="games-showcase">
+        <h2>Premium Games</h2>
+        <div className="games-grid">
+          <div className="game-card aviator">
+            <div className="card-emoji">✈️</div>
+            <h3>Aviator</h3>
+            <p>The world's #1 crash game. Multiplayer excitement.</p>
+            <span className="live-pill">● LIVE</span>
           </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <div className="step-icon">💵</div>
-            <h3>Choose Your Bet</h3>
-            <p>Select from $10, $20, $50, $100, or $500 tiers</p>
+          <div className="game-card mines">
+            <div className="card-emoji">💣</div>
+            <h3>Mines</h3>
+            <p>Uncover gems, dodge bombs, multiply your cash.</p>
           </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <div className="step-icon">⚔️</div>
-            <h3>Battle</h3>
-            <p>Face real players or the bot in Rock Paper Scissors</p>
+          <div className="game-card wheel">
+            <div className="card-emoji">🎡</div>
+            <h3>Wheel</h3>
+            <p>Spin the Wheel of Fortune. 50x Multipliers!</p>
           </div>
-          <div className="step">
-            <div className="step-number">4</div>
-            <div className="step-icon">🏆</div>
-            <h3>Win Big</h3>
-            <p>Winner takes 90% of the pot (10% house fee)</p>
+          <div className="game-card coin">
+            <div className="card-emoji">🪙</div>
+            <h3>Coinflip</h3>
+            <p>Double or nothing. 50/50 chance to win.</p>
           </div>
         </div>
       </section>
 
-      {/* Features */}
+      {/* Trust Section */}
       <section className="features-section">
         <h2>Why ZimBet?</h2>
         <div className="features">
           <div className="feature">
-            <span className="feature-icon">🤖</span>
-            <h3>Bot Fallback</h3>
-            <p>No human opponent? Play against our smart bot anytime</p>
-          </div>
-          <div className="feature">
-            <span className="feature-icon">📊</span>
-            <h3>Live Leaderboard</h3>
-            <p>Compete for top spots in wins, earnings, and win rate</p>
-          </div>
-          <div className="feature">
             <span className="feature-icon">🔒</span>
-            <h3>Secure</h3>
-            <p>Powered by ZimPay's trusted banking infrastructure</p>
+            <h3>Provably Fair</h3>
+            <p>Our algorithms ensure every round is random and verifiable.</p>
           </div>
           <div className="feature">
             <span className="feature-icon">⚡</span>
-            <h3>Instant Matches</h3>
-            <p>20 second matchmaking, 10 second rounds</p>
+            <h3>Instant Payouts</h3>
+            <p>Direct integration with your ZimPay wallet.</p>
+          </div>
+          <div className="feature">
+            <span className="feature-icon">🎮</span>
+            <h3>Immersive</h3>
+            <p>Premium sound effects and 3D visuals.</p>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta-section">
-        <h2>Ready to Win?</h2>
-        <p>Join ZimBet and test your luck against players worldwide</p>
+        <h2>Ready to Fly?</h2>
+        <p>Join the fastest growing casino community today.</p>
         <Link to="/login" className="btn-primary large">
-          <span>🎰</span> Start Playing
+          <span>🎰</span> Enter Casino
         </Link>
       </section>
 
@@ -129,19 +114,15 @@ export function Landing() {
       <footer className="landing-footer">
         <div className="footer-content">
           <div className="footer-brand">
-            <span>🎰</span> ZimBet
+            <span>Z</span> ZimBet
           </div>
           <p className="disclaimer">
-            🎮 This is a simulation game. Play responsibly.
+            18+ only. Play responsibly. ZimBet is a project by Silentics.
           </p>
           <div className="footer-links">
-            <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">
-              ZimPay
-            </a>
+            <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer">ZimPay</a>
             <span>•</span>
-            <a href="https://silentics.org" target="_blank" rel="noopener noreferrer">
-              Silentics
-            </a>
+            <a href="https://silentics.org" target="_blank" rel="noopener noreferrer">Silentics</a>
           </div>
         </div>
       </footer>

@@ -99,7 +99,7 @@ export function Wheel() {
     return (
         <div className="wheel-page">
             <header className="game-header">
-                <button className="back-btn" onClick={() => navigate('/dashboard')}>
+                <button className="back-btn" onClick={() => navigate('/dashboard')} onMouseEnter={() => soundManager.playHover()}>
                     ← Back
                 </button>
                 <div className="game-title">

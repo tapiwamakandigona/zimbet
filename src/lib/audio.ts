@@ -6,7 +6,10 @@ const audioCtx = new AudioContext()
 
 const gainNode = audioCtx.createGain()
 gainNode.connect(audioCtx.destination)
-gainNode.gain.value = 0.5 // Master volume
+
+// Mute State
+let isMuted = localStorage.getItem('zimbet_muted') === 'true'
+gainNode.gain.value = isMuted ? 0 : 0.5 // Master volume
 
 function createOscillator(type: OscillatorType, frequency: number, duration: number, startTime: number) {
     const osc = audioCtx.createOscillator()
@@ -27,6 +30,14 @@ function createOscillator(type: OscillatorType, frequency: number, duration: num
 }
 
 export const soundManager = {
+    toggleMute: () => {
+        isMuted = !isMuted
+        gainNode.gain.value = isMuted ? 0 : 0.5
+        localStorage.setItem('zimbet_muted', String(isMuted))
+        return isMuted
+    },
+    isMuted: () => isMuted,
+
     // Navigation / UI Click
     playClick: () => {
         if (audioCtx.state === 'suspended') audioCtx.resume()

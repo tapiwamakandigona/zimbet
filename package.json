@@ -6,7 +6,7 @@
   "homepage": "https://tapiwamakandigona.github.io/zimbet",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/copy404.js",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",

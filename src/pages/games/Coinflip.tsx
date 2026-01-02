@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
 import { flipCoin, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio' // Sound
 import type { GameSession } from '../../lib/gameEngine'
 import './Coinflip.css'
 
@@ -14,6 +15,7 @@ export function Coinflip() {
     const [choice, setChoice] = useState<'heads' | 'tails'>('heads')
     const [result, setResult] = useState<'heads' | 'tails' | null>(null)
     const [isFlipping, setIsFlipping] = useState(false)
+    const [rotation, setRotation] = useState(0)
     const [isWin, setIsWin] = useState<boolean | null>(null)
     const [message, setMessage] = useState('')
     const [session, setSession] = useState<GameSession>(createSession())
@@ -31,6 +33,7 @@ export function Coinflip() {
         setResult(null)
         setIsWin(null)
         setMessage('')
+        soundManager.playAction()
 
         // Deduct bet
         await supabase
@@ -38,16 +41,37 @@ export function Coinflip() {
             .update({ balance: zimBetAccount.balance - betAmount })
             .eq('id', zimBetAccount.id)
 
+        // Determine result immediately
+        const flipResult = flipCoin()
+
+        // Calculate target rotation
+        // Standard spin = 1800deg (5 spins)
+        // If tails, add 180deg
+        const extraSpins = 1800
+        const resultOffset = flipResult === 'tails' ? 180 : 0
+
+        // Ensure we always spin forward from current position relative to modulo 360
+        // But simply adding large constant works for visual effect
+        const targetRotation = rotation + extraSpins + resultOffset
+
+        // Adjust if we are currently at an offset
+        // If current is tails (180 mod 360), and we want heads (0 mod 360), we add 180.
+        // Actually simplest is just always add 1800 + whatever makes it match result
+        // Current rotation % 360 tells us where we are.
+        // Heads = 0, Tails = 180.
+
+        setRotation(targetRotation)
+
         // Flip after animation delay
         setTimeout(async () => {
-            const flipResult = flipCoin()
             setResult(flipResult)
 
             const won = flipResult === choice
             setIsWin(won)
 
             if (won) {
-                const winnings = betAmount * MULTIPLIER
+                soundManager.playWin()
+                const winnings = Math.ceil(betAmount * MULTIPLIER)
                 const newStreak = streak + 1
                 setStreak(newStreak)
                 localStorage.setItem('coinflip_streak', String(newStreak))
@@ -64,6 +88,7 @@ export function Coinflip() {
                 setMessage(newStreak >= 3 ? `🔥 ${newStreak} STREAK! ${getRandomMessage('bigWin')}` : getRandomMessage('win'))
                 setSession(updateSession(session, betAmount, winnings, true))
             } else {
+                soundManager.playLoss()
                 setStreak(0)
                 localStorage.setItem('coinflip_streak', '0')
 
@@ -81,13 +106,13 @@ export function Coinflip() {
 
             setIsFlipping(false)
             refreshAccount()
-        }, 2000) // Animation duration
+        }, 2000) // Animation duration matches transition
     }
 
     return (
         <div className="coinflip-page">
             <header className="game-header">
-                <button className="back-btn" onClick={() => navigate('/dashboard')}>
+                <button className="back-btn" onClick={() => navigate('/dashboard')} onMouseEnter={() => soundManager.playHover()}>
                     ← Back
                 </button>
                 <div className="game-title">
@@ -101,8 +126,14 @@ export function Coinflip() {
 
             <div className="game-area">
                 {/* Coin */}
-                <div className={`coin-container ${isFlipping ? 'flipping' : ''}`}>
-                    <div className={`coin ${result ? result : ''}`}>
+                <div className="coin-container">
+                    <div
+                        className="coin"
+                        style={{
+                            transform: `rotateY(${rotation}deg)`,
+                            transition: isFlipping ? 'transform 2s cubic-bezier(0.4, 2, 0.55, 0.44)' : 'transform 0.5s'
+                        }}
+                    >
                         <div className="coin-face heads">
                             <span>🦅</span>
                             <span className="label">HEADS</span>
