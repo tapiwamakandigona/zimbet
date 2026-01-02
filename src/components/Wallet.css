@@ -1,284 +1,262 @@
-.wallet {
+/* Wallet Styles */
+.wallet-container {
     width: 100%;
+    margin: 0 auto;
 }
 
-.wallet-balance {
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.25);
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.balance-label {
-    display: block;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-}
-
-.balance-amount {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #22c55e;
-}
-
-.wallet-tabs {
+/* Virtual Card */
+.virtual-card {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2c2c2c 100%);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    color: white;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 24px;
+    aspect-ratio: 1.586;
+    max-height: 240px;
     display: flex;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    padding: 4px;
-    margin-bottom: 20px;
+    flex-direction: column;
 }
 
-.wallet-tabs button {
-    flex: 1;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
+.virtual-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 60%);
+    z-index: 1;
+}
+
+.card-logo {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.4);
+    position: absolute;
+    top: 24px;
+    right: 24px;
+}
+
+.card-chip {
+    width: 44px;
+    height: 32px;
+    background: linear-gradient(135deg, #e6c589 0%, #a48247 100%);
+    border-radius: 6px;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 2;
+}
+
+.card-balance-label {
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.6);
-    font-size: 0.95rem;
-    font-weight: 500;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.card-balance {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: auto;
+    font-family: monospace;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 2;
+}
+
+.card-holder span {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.5);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.holder-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.card-brand {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #ffd700;
+    font-style: italic;
+}
+
+/* Tabs */
+.wallet-actions-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.action-tab {
+    flex: 1;
+    background: #1b1c1d;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 12px;
+    color: #9ea0a3;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.wallet-tabs button:hover {
+.action-tab.active {
+    background: rgba(255, 255, 255, 0.08);
     color: white;
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-.wallet-tabs button.active {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.wallet-message {
-    padding: 12px 16px;
+.wallet-alert {
+    padding: 12px;
     border-radius: 8px;
     margin-bottom: 16px;
     font-size: 0.9rem;
     font-weight: 500;
+    text-align: center;
 }
 
-.wallet-message.success {
-    background: rgba(34, 197, 94, 0.15);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    color: #22c55e;
-}
-
-.wallet-message.error {
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+.wallet-alert.error {
+    background: rgba(239, 68, 68, 0.2);
     color: #ef4444;
 }
 
-.wallet-section {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 20px;
+.wallet-alert.success {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
 }
 
-.wallet-section h3 {
-    margin: 0 0 16px 0;
-    font-size: 1rem;
-    font-weight: 600;
+/* Content Views */
+.action-content h3 {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
     color: white;
 }
 
-/* Deposit Instructions */
-.instructions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.step {
+.instruction-step {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 12px 16px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
     border-radius: 8px;
 }
 
-.step-num {
+.step-badge {
     width: 24px;
     height: 24px;
-    background: rgba(124, 58, 237, 0.3);
+    background: #333;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.8rem;
-    font-weight: 600;
-    color: #a78bfa;
-    flex-shrink: 0;
+    color: #999;
+    font-weight: 700;
 }
 
-.step span:last-child {
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
+.highlight-user {
+    color: #ffd700;
+    user-select: text;
 }
 
-.step strong {
-    color: #22c55e;
-}
-
-.zimpay-btn {
+.zimpay-link-btn {
     display: block;
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    border: none;
-    border-radius: 10px;
+    background: #3b82f6;
     color: white;
-    font-size: 1rem;
-    font-weight: 600;
     text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-bottom: 12px;
-}
-
-.zimpay-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
-}
-
-.refresh-btn {
-    width: 100%;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    font-weight: 700;
+    text-decoration: none;
+    margin-top: 16px;
 }
 
-.refresh-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+.refresh-link {
+    background: transparent;
+    border: none;
+    color: #888;
+    width: 100%;
+    margin-top: 12px;
+    font-size: 0.8rem;
+    cursor: pointer;
 }
 
 /* Withdraw Form */
-.form-group {
+.input-group {
     margin-bottom: 16px;
 }
 
-.form-group label {
+.input-group label {
     display: block;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    color: #888;
+    margin-bottom: 8px;
 }
 
-.form-group input {
+.input-group input {
     width: 100%;
-    padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 14px;
+    background: #111;
+    border: 1px solid #333;
     border-radius: 8px;
     color: white;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.2s ease;
 }
 
-.form-group input:focus {
-    border-color: rgba(124, 58, 237, 0.5);
-}
-
-.form-group input::placeholder {
-    color: rgba(255, 255, 255, 0.3);
-}
-
-.amount-input {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.amount-input .currency {
-    padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 1rem;
-}
-
-.amount-input input {
-    flex: 1;
-    border: none;
-    border-radius: 0;
-    background: transparent;
-}
-
-.quick-amounts {
+.quick-chips {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
 }
 
-.quick-amounts button {
-    padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.quick-chips button {
+    padding: 8px 12px;
+    background: #222;
+    border: 1px solid #333;
+    color: #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.quick-chips button:hover {
+    background: #333;
+}
+
+.primary-action-btn {
+    width: 100%;
+    padding: 16px;
+    background: #e23333;
+    border: none;
     border-radius: 8px;
     color: white;
-    font-size: 0.9rem;
+    font-weight: 800;
     cursor: pointer;
-    transition: all 0.2s ease;
+    letter-spacing: 1px;
 }
 
-.quick-amounts button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.quick-amounts button.active {
-    background: rgba(124, 58, 237, 0.2);
-    border-color: rgba(124, 58, 237, 0.5);
-    color: #a78bfa;
-}
-
-.quick-amounts button:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-}
-
-.withdraw-btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #7c3aed, #6d28d9);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.withdraw-btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3);
-}
-
-.withdraw-btn:disabled {
+.primary-action-btn:disabled {
     opacity: 0.5;
-    cursor: not-allowed;
 }
