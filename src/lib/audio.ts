@@ -25,7 +25,7 @@ const ASSETS: Record<string, HTMLAudioElement> = {
 // Preload (silent fail if missing)
 Object.values(ASSETS).forEach(audio => {
     audio.volume = 0.5
-    audio.catchErrors = true // Custom flag
+    // audio.catchErrors = true // Custom flag
 })
 
 // --- PRO SYNTHESIS ENGINE ---
@@ -140,6 +140,13 @@ export const soundManager = {
         playFMBell(1200, 0.3, audioCtx.currentTime)
     }),
 
+    // Alias Gem to Coin or new Sound
+    playGem: () => playSound('coin', () => {
+        const t = audioCtx.currentTime
+        playFMBell(1500, 0.1, t)
+        playFMBell(2000, 0.2, t + 0.05)
+    }),
+
     playAction: () => playSound('spin', () => {
         const t = audioCtx.currentTime
         // Rising futuristic swipe
@@ -162,6 +169,14 @@ export const soundManager = {
         playSuperSaw(1046.50, 0.8, t + 0.15)
         // Add coin jingling sound layer
         setTimeout(() => playFMBell(1500, 0.2, t + 0.1), 100)
+    }),
+
+    playJackpot: () => playSound('win', () => {
+        // Big Win sequence
+        const t = audioCtx.currentTime
+        for (let i = 0; i < 10; i++) {
+            playSuperSaw(500 + i * 100, 0.1, t + i * 0.1)
+        }
     }),
 
     playLoss: () => playSound('loss', () => {

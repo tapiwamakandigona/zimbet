@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Matter from 'matter-js'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { formatMoney } from '../../lib/gameEngine'
 import { soundManager } from '../../lib/audio'
 import './Plinko.css'
 
@@ -13,9 +12,7 @@ export function Plinko() {
 
     // Game Config
     const [betAmount, setBetAmount] = useState(10)
-    const [rows, setRows] = useState(16)
-    const [lastWin, setLastWin] = useState<number | null>(null)
-    const [inGame, setInGame] = useState(false) // If balls are dropping
+    const [rows] = useState(16) // Fixed rows for now
 
     // Canvas & Engine Refs
     const sceneRef = useRef<HTMLDivElement>(null)
@@ -161,7 +158,7 @@ export function Plinko() {
                     // Remove ball
                     Composite.remove(world, ball)
                     ballsRef.current = Math.max(0, ballsRef.current - 1)
-                    if (ballsRef.current === 0) setInGame(false)
+                    if (ballsRef.current === 0) { } // setInGame(false) removed
                 }
             })
         })
@@ -187,7 +184,7 @@ export function Plinko() {
 
     const handleWin = async (bet: number, mult: number) => {
         const win = Math.floor(bet * mult)
-        setLastWin(win)
+        // setLastWin(win) removed
         if (mult >= 1) soundManager.playWin()
         else soundManager.playLoss()
 
@@ -243,7 +240,7 @@ export function Plinko() {
         if (!engineRef.current) return
 
         soundManager.playClick()
-        setInGame(true)
+        // setInGame(true) removed
         ballsRef.current += 1
 
         // Deduct balance
