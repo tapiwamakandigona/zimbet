@@ -25,7 +25,6 @@ const ASSETS: Record<string, HTMLAudioElement> = {
 // Preload (silent fail if missing)
 Object.values(ASSETS).forEach(audio => {
     audio.volume = 0.5
-    // audio.catchErrors = true // Custom flag
 })
 
 // --- PRO SYNTHESIS ENGINE ---
@@ -35,14 +34,14 @@ async function playSound(name: keyof typeof ASSETS, synthFn: () => void) {
     if (audioCtx.state === 'suspended') await audioCtx.resume()
     if (isMuted) return
 
+    // Hybrid with Try-Catch
     const audio = ASSETS[name]
-    // Check if file exists/loads by trying to play
-    // Since we can't sync check existence, we try-play.
-    // However, HTMLAudioElement throws error logic is async.
-    // Better strategy: We assume files MIGHT be missing.
-    // We execute Synth immediately as "layer" or fallback?
-    // "Robotic" complaint means we should rely on Synth improvements if files missing.
-    // We'll stick to mostly Synth but BETTER Synth for now, as files are likely 404.
+    try {
+        if (audio) {
+            audio.currentTime = 0
+            audio.play().catch(() => { })
+        }
+    } catch (e) { }
 
     synthFn()
 }
