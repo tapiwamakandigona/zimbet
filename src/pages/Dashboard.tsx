@@ -238,7 +238,14 @@ export function Dashboard() {
                 {/* Play Tab */}
                 {activeTab === 'play' && (
                     <section className="play-section">
-                        <h3>Select Bet Amount</h3>
+                        {/* Casino Games Banner */}
+                        <div className="casino-banner" onClick={() => navigate('/casino')}>
+                            <span className="casino-banner-text">🎰 Casino Games</span>
+                            <span className="casino-banner-sub">Aviator • Mines • Dice • More!</span>
+                            <span className="casino-banner-arrow">→</span>
+                        </div>
+
+                        <h3>Rock Paper Scissors</h3>
                         <p className="section-desc">Choose a bet tier to find an opponent</p>
 
                         <div className="bet-grid">

@@ -1,0 +1,467 @@
+.aviator-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0f0f2f 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.back-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.game-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.game-icon {
+    font-size: 1.5rem;
+}
+
+.balance {
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    color: #ffd700;
+    font-weight: 600;
+}
+
+/* History Bar */
+.history-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    overflow-x: auto;
+}
+
+.history-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.history-item {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.history-item.low {
+    background: rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+}
+
+.history-item.mid {
+    background: rgba(52, 152, 219, 0.3);
+    color: #3498db;
+}
+
+.history-item.high {
+    background: rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+}
+
+/* Game Area */
+.game-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.flight-zone {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 300px;
+    background: radial-gradient(ellipse at bottom, rgba(52, 152, 219, 0.2), transparent);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Rocket */
+.rocket {
+    font-size: 64px;
+    position: absolute;
+    bottom: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: transform 0.1s linear;
+    filter: drop-shadow(0 0 20px rgba(255, 150, 0, 0.5));
+}
+
+.rocket.flying {
+    animation: fly 0.5s ease-in-out infinite;
+    transform: translateX(-50%) translateY(calc(var(--progress, 0) * -100px)) rotate(-15deg);
+}
+
+.rocket.crashed {
+    animation: explode 0.5s ease-out;
+}
+
+@keyframes fly {
+
+    0%,
+    100% {
+        transform: translateX(-50%) translateY(calc(var(--progress, 0) * -100px)) rotate(-15deg);
+    }
+
+    50% {
+        transform: translateX(-50%) translateY(calc(var(--progress, 0) * -100px - 5px)) rotate(-18deg);
+    }
+}
+
+@keyframes explode {
+    0% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: translateX(-50%) scale(2);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateX(-50%) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Multiplier Display */
+.multiplier-display {
+    font-size: 4rem;
+    font-weight: 900;
+    text-shadow: 0 0 30px currentColor;
+    transition: color 0.3s ease;
+    animation: pulse 0.5s ease infinite;
+}
+
+.multiplier-display.crashed {
+    color: #e74c3c !important;
+    animation: shake 0.5s ease;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-10px);
+    }
+
+    75% {
+        transform: translateX(10px);
+    }
+}
+
+/* Cashout Success */
+.cashout-success {
+    position: absolute;
+    top: 20%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(46, 204, 113, 0.2);
+    border: 2px solid #2ecc71;
+    border-radius: 16px;
+    padding: 16px 32px;
+    animation: bounceIn 0.5s ease;
+}
+
+.cashout-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.cashout-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2ecc71;
+}
+
+.cashout-winnings {
+    font-size: 1.2rem;
+    color: #2ecc71;
+    font-weight: 600;
+}
+
+@keyframes bounceIn {
+    0% {
+        transform: scale(0);
+    }
+
+    60% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Game Message */
+.game-message {
+    position: absolute;
+    bottom: 10%;
+    font-size: 1.2rem;
+    font-weight: 600;
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Controls */
+.controls {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.4);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bet-section,
+.auto-section {
+    margin-bottom: 16px;
+}
+
+.bet-section label,
+.auto-section label {
+    display: block;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+}
+
+.bet-input,
+.auto-input {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.bet-input button {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ffd700;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.bet-input button:hover {
+    background: rgba(255, 215, 0, 0.2);
+}
+
+.bet-input input,
+.auto-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    padding: 12px;
+    text-align: center;
+    outline: none;
+}
+
+.auto-input {
+    max-width: 150px;
+}
+
+.auto-input span {
+    padding: 0 16px 0 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Quick Bets */
+.quick-bets {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.quick-bets button {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-bets button:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.quick-bets button.active {
+    background: rgba(255, 215, 0, 0.3);
+    border-color: #ffd700;
+    color: #ffd700;
+}
+
+.quick-bets button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Play Button */
+.play-btn {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+    border: none;
+    border-radius: 14px;
+    color: #1a1a2e;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 16px;
+}
+
+.play-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+}
+
+.play-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Cashout Button */
+.cashout-btn {
+    width: 100%;
+    padding: 24px;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    border: none;
+    border-radius: 14px;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cashout-btn.pulse {
+    animation: pulseCashout 0.5s ease infinite;
+}
+
+@keyframes pulseCashout {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(46, 204, 113, 0.4);
+    }
+
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 30px rgba(46, 204, 113, 0.6);
+    }
+}
+
+.cashout-amount {
+    font-size: 2rem;
+    display: block;
+    margin-top: 4px;
+}
+
+/* Session Stats */
+.session-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.stat-value.positive {
+    color: #2ecc71;
+}
+
+.stat-value.negative {
+    color: #e74c3c;
+}

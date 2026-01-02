@@ -4,6 +4,12 @@ import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
 import { Dashboard } from './pages/Dashboard'
 import { Game } from './pages/Game'
+import { CasinoLobby } from './pages/CasinoLobby'
+import { Aviator } from './pages/games/Aviator'
+import { Coinflip } from './pages/games/Coinflip'
+import { Dice } from './pages/games/Dice'
+import { Mines } from './pages/games/Mines'
+import { Wheel } from './pages/games/Wheel'
 import './App.css'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -41,6 +47,36 @@ function AppRoutes() {
       <Route path="/game" element={
         <ProtectedRoute>
           <Game />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino" element={
+        <ProtectedRoute>
+          <CasinoLobby />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/aviator" element={
+        <ProtectedRoute>
+          <Aviator />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/coinflip" element={
+        <ProtectedRoute>
+          <Coinflip />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/dice" element={
+        <ProtectedRoute>
+          <Dice />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/mines" element={
+        <ProtectedRoute>
+          <Mines />
+        </ProtectedRoute>
+      } />
+      <Route path="/casino/wheel" element={
+        <ProtectedRoute>
+          <Wheel />
         </ProtectedRoute>
       } />
       <Route path="*" element={<Navigate to="/" replace />} />
