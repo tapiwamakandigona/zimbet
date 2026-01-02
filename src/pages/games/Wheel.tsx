@@ -113,22 +113,53 @@ export function Wheel() {
                         className="wheel"
                         style={{
                             transform: `rotate(${rotation}deg)`,
-                            transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+                            transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
+                            background: 'transparent',
+                            boxShadow: 'none'
                         }}
                     >
-                        {WHEEL_SEGMENTS.map((segment, index) => (
-                            <div
-                                key={index}
-                                className="wheel-segment"
-                                style={{
-                                    '--segment-angle': `${SEGMENT_ANGLE}deg`,
-                                    '--segment-rotation': `${index * SEGMENT_ANGLE}deg`,
-                                    background: segment.color
-                                } as React.CSSProperties}
-                            >
-                                <span className="segment-label">{segment.label}</span>
-                            </div>
-                        ))}
+                        <svg viewBox="0 0 100 100" className="wheel-svg">
+                            {WHEEL_SEGMENTS.map((segment, index) => {
+                                // Calculate svg path for segment
+                                const startAngle = index * SEGMENT_ANGLE
+                                const endAngle = (index + 1) * SEGMENT_ANGLE
+
+                                // Convert to radians, subtract 90deg to start from top
+                                const startRad = (startAngle - 90) * Math.PI / 180
+                                const endRad = (endAngle - 90) * Math.PI / 180
+
+                                const x1 = 50 + 50 * Math.cos(startRad)
+                                const y1 = 50 + 50 * Math.sin(startRad)
+                                const x2 = 50 + 50 * Math.cos(endRad)
+                                const y2 = 50 + 50 * Math.sin(endRad)
+
+                                // A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+                                const largeArc = SEGMENT_ANGLE > 180 ? 1 : 0
+
+                                const pathData = `M 50 50 L ${x1} ${y1} A 50 50 0 ${largeArc} 1 ${x2} ${y2} Z`
+
+                                return (
+                                    <g key={index}>
+                                        <path d={pathData} fill={segment.color} stroke="#1a1a2e" strokeWidth="0.5" />
+                                        {/* Label Text at mid-angle */}
+                                        <text
+                                            x={50 + 35 * Math.cos(startRad + (endRad - startRad) / 2)}
+                                            y={50 + 35 * Math.sin(startRad + (endRad - startRad) / 2)}
+                                            fill="white"
+                                            fontSize="5"
+                                            fontWeight="bold"
+                                            textAnchor="middle"
+                                            dominantBaseline="middle"
+                                            transform={`rotate(${90 + (startAngle + endAngle) / 2}, ${50 + 35 * Math.cos(startRad + (endRad - startRad) / 2)}, ${50 + 35 * Math.sin(startRad + (endRad - startRad) / 2)})`}
+                                        >
+                                            {segment.label}
+                                        </text>
+                                    </g>
+                                )
+                            })}
+                            <circle cx="50" cy="50" r="10" fill="#1a1a2e" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+                            <text x="50" y="52" fill="white" fontSize="10" textAnchor="middle">🎰</text>
+                        </svg>
                     </div>
                 </div>
 
