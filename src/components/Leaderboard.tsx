@@ -135,9 +135,9 @@ export function Leaderboard() {
                             </div>
                             <div className="player-info">
                                 <span className="player-avatar">
-                                    {entry.username.charAt(0).toUpperCase()}
+                                    {entry.username.replace(/^zm-/i, '').charAt(0).toUpperCase()}
                                 </span>
-                                <span className="player-name">@{entry.username}</span>
+                                <span className="player-name">@{entry.username.replace(/^zm-/i, '')}</span>
                             </div>
                             <div className="player-stats">
                                 {sortBy === 'wins' && (

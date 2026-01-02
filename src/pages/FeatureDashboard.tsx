@@ -82,7 +82,7 @@ export function FeatureDashboard() {
                     <button className="fd-nav-item" onClick={toggleMute}>
                         <span>{muted ? '🔇' : '🔊'}</span> {muted ? 'Unmute' : 'Mute'}
                     </button>
-                    <button className="fd-nav-item logout" onClick={signOut}>
+                    <button className="fd-nav-item logout" onClick={async () => { await signOut(); navigate('/', { replace: true }) }}>
                         <span>🚪</span> Sign Out
                     </button>
                 </nav>

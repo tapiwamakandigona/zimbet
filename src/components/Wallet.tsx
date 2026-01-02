@@ -87,7 +87,7 @@ export function Wallet() {
                 <div className="card-footer">
                     <div className="card-holder">
                         <span>CARD HOLDER</span>
-                        <div className="holder-name">@{zimBetAccount?.username}</div>
+                        <div className="holder-name">@{zimBetAccount?.username.replace(/^zm-/i, '')}</div>
                     </div>
                     <div className="card-brand">PLATINUM</div>
                 </div>
@@ -126,7 +126,7 @@ export function Wallet() {
                         </div>
                         <div className="instruction-step">
                             <div className="step-badge">2</div>
-                            <p>Send to: <b className="highlight-user">zm-{zimBetAccount?.username}</b></p>
+                            <p>Send to: <b className="highlight-user">@{zimBetAccount?.username}</b></p>
                         </div>
                         <div className="instruction-step">
                             <div className="step-badge">3</div>
