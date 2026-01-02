@@ -15,13 +15,79 @@ const CHOICE_EMOJIS = {
     scissors: '✂️'
 }
 
-// Bot with slight patterns (beatable but not obvious)
-const getBotChoice = (): Choice => {
-    // Slightly favor rock (40% rock, 30% paper, 30% scissors)
+// Smart gambling bot: lets player win early to hook them, then wins more long-term
+// This creates the "gambler's high" - early wins followed by gradual losses
+let gameCount = 0
+let playerLastChoices: Choice[] = []
+
+const getBotChoice = (playerChoice?: Choice): Choice => {
+    gameCount++
+
+    // Track player's choices for pattern detection
+    if (playerChoice) {
+        playerLastChoices.push(playerChoice)
+        if (playerLastChoices.length > 5) playerLastChoices.shift()
+    }
+
+    // PHASE 1: Let player win more in first few games (hook them)
+    // First 3 games: ~60% player win rate
+    if (gameCount <= 3) {
+        const rand = Math.random()
+        // 60% chance to lose, 20% draw, 20% win
+        if (rand < 0.6) {
+            // Lose on purpose - return what loses to a random choice
+            const choices = ['rock', 'paper', 'scissors'] as const
+            const randomPlayerChoice = choices[Math.floor(Math.random() * 3)]
+            if (randomPlayerChoice === 'rock') return 'scissors'
+            if (randomPlayerChoice === 'paper') return 'rock'
+            return 'paper'
+        }
+        // Otherwise random
+        return CHOICES[Math.floor(Math.random() * 3)]
+    }
+
+    // PHASE 2: Gradual difficulty increase (games 4-10)
+    // Player wins ~45%
+    if (gameCount <= 10) {
+        const rand = Math.random()
+        // Detect simple patterns (if player repeats)
+        if (playerLastChoices.length >= 2) {
+            const last = playerLastChoices[playerLastChoices.length - 1]
+            const secondLast = playerLastChoices[playerLastChoices.length - 2]
+            // If player repeated, 40% chance to counter
+            if (last === secondLast && rand < 0.4) {
+                if (last === 'rock') return 'paper'
+                if (last === 'paper') return 'scissors'
+                return 'rock'
+            }
+        }
+        return CHOICES[Math.floor(Math.random() * 3)]
+    }
+
+    // PHASE 3: House edge kicks in (games 11+)
+    // Player wins ~38% (house always wins long-term)
     const rand = Math.random()
-    if (rand < 0.4) return 'rock'
-    if (rand < 0.7) return 'paper'
-    return 'scissors'
+
+    // Pattern detection - counter player's most common choice
+    if (playerLastChoices.length >= 3 && rand < 0.35) {
+        const counts = { rock: 0, paper: 0, scissors: 0 }
+        playerLastChoices.forEach(c => { if (c) counts[c]++ })
+        const mostCommon = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] as Choice
+        // Counter the most common choice
+        if (mostCommon === 'rock') return 'paper'
+        if (mostCommon === 'paper') return 'scissors'
+        return 'rock'
+    }
+
+    // 30% pure counter if we know their choice (reading their move)
+    if (playerChoice && rand < 0.30) {
+        if (playerChoice === 'rock') return 'paper'
+        if (playerChoice === 'paper') return 'scissors'
+        return 'rock'
+    }
+
+    // Otherwise random
+    return CHOICES[Math.floor(Math.random() * 3)]
 }
 
 const getWinner = (p1: Choice, p2: Choice): 'p1' | 'p2' | 'draw' => {
@@ -357,8 +423,17 @@ export function Game() {
     }
 
     const playAgain = () => {
-        navigate(`/game?bet=${betAmount}`)
-        window.location.reload()
+        // Reset game state instead of reloading page (which breaks hash router)
+        setPhase('matchmaking')
+        setTimeLeft(MATCHMAKING_TIMEOUT)
+        setMyChoice(null)
+        setOpponentChoice(null)
+        setOpponentName('Opponent')
+        setIsBot(false)
+        setResult(null)
+        setEarnings(0)
+        setShowBotPrompt(false)
+        setMatchId(null)
     }
 
     return (
