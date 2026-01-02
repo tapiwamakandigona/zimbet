@@ -2,7 +2,8 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Landing } from './pages/Landing'
 import { Login } from './pages/Login'
-import { Dashboard } from './pages/Dashboard'
+import { FeatureDashboard } from './pages/FeatureDashboard'
+// import { Dashboard } from './pages/Dashboard'
 import { Game } from './pages/Game'
 import { CasinoLobby } from './pages/CasinoLobby'
 import { Aviator } from './pages/games/Aviator'
@@ -41,7 +42,7 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={
         <ProtectedRoute>
-          <Dashboard />
+          <FeatureDashboard />
         </ProtectedRoute>
       } />
       <Route path="/game" element={
