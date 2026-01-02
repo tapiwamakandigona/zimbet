@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { rollDice, calculateDiceMultiplier, getRandomMessage, isNearMiss, createSession, updateSession } from '../../lib/gameEngine'
+import { rollDice, calculateDiceMultiplier, getRandomMessage, isNearMiss, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
 import './Dice.css'
 
@@ -100,7 +100,7 @@ export function Dice() {
                     <span>Dice</span>
                 </div>
                 <div className="balance">
-                    ${zimBetAccount?.balance.toFixed(2) || '0.00'}
+                    {formatMoney(zimBetAccount?.balance || 0)}
                 </div>
             </header>
 

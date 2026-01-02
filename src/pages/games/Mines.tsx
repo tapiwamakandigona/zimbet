@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { generateMinesGrid, calculateMinesMultiplier, getRandomMessage, createSession, updateSession } from '../../lib/gameEngine'
+import { generateMinesGrid, calculateMinesMultiplier, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
 import './Mines.css'
 
@@ -138,7 +138,7 @@ export function Mines() {
                     <span>Mines</span>
                 </div>
                 <div className="balance">
-                    ${zimBetAccount?.balance.toFixed(2) || '0.00'}
+                    {formatMoney(zimBetAccount?.balance || 0)}
                 </div>
             </header>
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { generateAviatorCrashPoint, getRandomMessage, createSession, updateSession } from '../../lib/gameEngine'
+import { generateAviatorCrashPoint, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
 import { Confetti } from '../../components/Confetti'
 import './Aviator.css'
@@ -209,7 +209,7 @@ export function Aviator() {
                     <span>Aviator</span>
                 </div>
                 <div className="balance">
-                    ${zimBetAccount?.balance.toFixed(2) || '0.00'}
+                    {formatMoney(zimBetAccount?.balance || 0)}
                 </div>
             </header>
 

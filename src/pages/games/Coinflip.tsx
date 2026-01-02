@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { flipCoin, getRandomMessage, createSession, updateSession } from '../../lib/gameEngine'
+import { flipCoin, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
 import type { GameSession } from '../../lib/gameEngine'
 import './Coinflip.css'
 
@@ -95,7 +95,7 @@ export function Coinflip() {
                     <span>Coinflip</span>
                 </div>
                 <div className="balance">
-                    ${zimBetAccount?.balance.toFixed(2) || '0.00'}
+                    {formatMoney(zimBetAccount?.balance || 0)}
                 </div>
             </header>
 
