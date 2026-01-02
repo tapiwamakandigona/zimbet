@@ -87,7 +87,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/zimbet">
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
