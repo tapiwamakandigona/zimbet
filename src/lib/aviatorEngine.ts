@@ -1,3 +1,5 @@
+import { secureRandom, generateSeed } from './gameEngine'
+
 export interface AviatorState {
     roundId: string
     phase: 'waiting' | 'flying' | 'crashed'
@@ -7,115 +9,125 @@ export interface AviatorState {
     now: number
 }
 
-// Simple seeded RNG
-function mulberry32(a: number) {
+// ========== PROVABLY FAIR SIMULATION ==========
+// In a real app, Server Seed is secret on server, Client Seed is public.
+// Here we simulate this by holding a "Server Seed" in memory for the session.
+// This ensures that even if you know the time, you can't predict the result without the seed.
+
+let SERVER_SEED = generateSeed()
+let CLIENT_SEED = 'client-seed-demo' // In a real app, user can change this
+let NONCE = 0
+
+// Allow UI to interact with Fairness
+export function setClientSeed(seed: string) {
+    CLIENT_SEED = seed
+    // Reset round to apply new seed immediately? 
+    // Usually applies to NEXT round.
+}
+
+export function getClientSeed() {
+    return CLIENT_SEED
+}
+
+// In real app, we verify SHA256(SERVER_SEED) matches this
+// For now, return the seed itself (simulated "Reveal" after round) 
+// or the hashed version if we had a toggle.
+// Let's just return the raw seed for this demo so user can copy-paste to hash checker.
+export function getServerSeed() {
+    return SERVER_SEED
+}
+
+// Robust seeded RNG (Cyrb128) - better than mulberry32
+// We need this because we must be able to RE-GENERATE the same crash point
+// given the same seeds (for verification).
+function cyrb128(str: string) {
+    let h1 = 1779033703, h2 = 3144134277,
+        h3 = 1013904242, h4 = 2773480762;
+    for (let i = 0, k; i < str.length; i++) {
+        k = str.charCodeAt(i);
+        h1 = h2 ^ Math.imul(h1 ^ k, 597399067);
+        h2 = h3 ^ Math.imul(h2 ^ k, 2869860233);
+        h3 = h4 ^ Math.imul(h3 ^ k, 951274213);
+        h4 = h1 ^ Math.imul(h4 ^ k, 2716044179);
+    }
+    h1 = Math.imul(h3 ^ (h1 >>> 18), 597399067);
+    h2 = Math.imul(h4 ^ (h2 >>> 22), 2869860233);
+    h3 = Math.imul(h1 ^ (h3 >>> 17), 951274213);
+    h4 = Math.imul(h2 ^ (h4 >>> 19), 2716044179);
+
+    // Return a function that generates next random
     return function () {
-        var t = a += 0x6D2B79F5;
-        t = Math.imul(t ^ t >>> 15, t | 1);
-        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        h1 = Math.imul(h1 ^ h2 ^ h3 ^ h4, 2095160); // Mix 1
+        h2 = Math.imul(h2 ^ h1, 10661418);         // Mix 2
+        return (h1 >>> 0) / 4294967296;
     }
 }
 
-// Generate crash point (same physics as before)
-// 0.99 / (1 - random)
-function getCrashPoint(random: number): number {
+// Generate crash point using Provably Fair seeds
+function generateProvablyFairCrash(serverSeed: string, clientSeed: string, nonce: number): number {
+    // Combine seeds to create a unique hash/seed for this round
+    const combined = `${serverSeed}-${clientSeed}-${nonce}`
+
+    // Use the combined string to seed our RNG
+    const rng = cyrb128(combined)
+    const random = rng() // Get uniform float 0-1
+
+    // Apply Aviator Crash Formula
+    // 0.99 / (1 - random) = exponential distribution
+    // 1% House Edge is standard (or 3-4% for some variants)
+    // GAME_RTP.aviator is 0.97, so let's align.
+    // If we want 97% RTP, the crash point should roughly be 0.97 / (1-r) maybe?
+    // Actually standard is: crash = 0.99 / (1-r) but "Instant bust" logic handles the edge.
+    // Let's stick to the classic formula which feels "right" for gameplay.
+
     const safeRandom = Math.max(0.01, Math.min(0.99, random))
     const crashPoint = 0.99 / (1 - safeRandom)
-    return Math.min(100, Math.round(crashPoint * 100) / 100)
+
+    // 1 in ~100 games should be instant crash (1.00x) for house edge
+    // The formula naturally produces logic: if random < 0.01 (1%), crash < 1.0 -> clamp to 1.0
+
+    return Math.min(100, Math.round(Math.max(1, crashPoint) * 100) / 100)
 }
 
-// Calculate flight duration in ms for a given multiplier
-// Using the formula from Aviator.tsx: multiplier = E^(elapsed * 0.12)
-// elapsed = ln(multiplier) / 0.12
-// elapsed_ms = (ln(multiplier) / 0.12) * 1000
+// Calculate flight duration in ms
 function getFlightDuration(multiplier: number): number {
     if (multiplier <= 1.0) return 0
+    // formula: multiplier = E^(elapsed_sec * 0.12)  => elapsed_sec = ln(mult) / 0.12
     return (Math.log(multiplier) / 0.12) * 1000
 }
 
-const WAITING_TIME_MS = 5000 // 5 seconds waiting
+const WAITING_TIME_MS = 5000
 
-// Cache for generated rounds per hour to avoid recalculating
-// Key: "YYYY-MM-DD-HH"
-const scheduleCache: Record<string, AviatorState[]> = {}
-
-function generateHourlySchedule(timestamp: number): AviatorState[] {
-    const date = new Date(timestamp)
-    date.setMinutes(0, 0, 0)
-    const hourStart = date.getTime()
-    const seedStr = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}-${date.getUTCHours()}`
-
-    // Create numeric seed from string
-    let seed = 0
-    for (let i = 0; i < seedStr.length; i++) seed = (seed << 5) - seed + seedStr.charCodeAt(i)
-
-    const rng = mulberry32(seed)
-
-    if (scheduleCache[seedStr]) return scheduleCache[seedStr]
-
-    const rounds: AviatorState[] = []
-    let currentTime = hourStart
-    // Generate enough rounds to cover the hour + overlap
-    // A safe upper bound is 3600 / 5 = 720 rounds (if all instant crash)
-    // Realistically 400 is plenty
-
-    for (let i = 0; i < 500; i++) {
-        const r1 = rng() // for crash point
-        // const r2 = rng() // spare
-
-        const crash = getCrashPoint(r1)
-        const flightTime = getFlightDuration(crash)
-        const totalDuration = WAITING_TIME_MS + flightTime + 3000 // +3s post-crash delay
-
-        rounds.push({
-            roundId: `${seedStr}-${i}`,
-            phase: 'waiting', // default, calculated dynamically later
-            crashPoint: crash,
-            startTime: currentTime,
-            duration: totalDuration,
-            now: 0
-        })
-
-        currentTime += totalDuration
-    }
-
-    scheduleCache[seedStr] = rounds
-    return rounds
-}
+// State Management
+let currentRound: AviatorState | null = null
+let nextRoundStart = 0
 
 export function getCurrentRound(now = Date.now()): AviatorState {
-    const rounds = generateHourlySchedule(now)
+    // If no round or current round totally finished (including post-crash delay), start next
+    // logic: if (!currentRound) -> init
+    // if (currentRound) -> check if time > startTime + duration -> init next
 
-    // Find the round that contains 'now'
-    // Since rounds are sorted by startTime, we can find the first one where startTime + duration > now
-
-    let activeRound = rounds.find(r => r.startTime <= now && (r.startTime + r.duration) > now)
-
-    if (!activeRound) {
-        // Fallback (shouldn't happen unless clock skew > 1 hour or gap in logic)
-        // Just return the last one (crashed) or first of next hour?
-        // Let's return a dummy waiting round
-        return {
-            roundId: 'fallback',
-            phase: 'waiting',
-            crashPoint: 1.0,
-            startTime: now,
-            duration: 10000,
-            now
-        }
+    if (!currentRound) {
+        initNextRound(now)
     }
 
-    const elapsed = now - activeRound.startTime
+    // Check if we need to progress to next round
+    // We add a small buffer so the loop catches the 'crashed' state properly before switching
+    if (currentRound && now > (currentRound.startTime + currentRound.duration + 100)) {
+        initNextRound(now)
+    }
 
-    // Determine phase
+    // Should be initialized now
+    const r = currentRound!
+    const elapsed = now - r.startTime
+
     let phase: 'waiting' | 'flying' | 'crashed' = 'waiting'
 
     if (elapsed < WAITING_TIME_MS) {
         phase = 'waiting'
     } else {
         const flightTime = elapsed - WAITING_TIME_MS
-        const crashTime = getFlightDuration(activeRound.crashPoint)
+        const crashTime = getFlightDuration(r.crashPoint)
 
         if (flightTime < crashTime) {
             phase = 'flying'
@@ -124,68 +136,63 @@ export function getCurrentRound(now = Date.now()): AviatorState {
         }
     }
 
-    return {
-        ...activeRound,
-        phase,
-        now
+    return { ...r, phase, now }
+}
+
+function initNextRound(now: number) {
+    NONCE++
+    const crash = generateProvablyFairCrash(SERVER_SEED, CLIENT_SEED, NONCE)
+    const flight = getFlightDuration(crash)
+    const duration = WAITING_TIME_MS + flight + 3000 // 3s post-crash delay
+
+    // Start time should be "now" if we are starting fresh, 
+    // or "end of last round" if we want seamlessness. 
+    // Ideally "now" to avoid catch-up glitches if tab was inactive.
+    const startTime = now
+
+    currentRound = {
+        roundId: `${SERVER_SEED.substring(0, 5)}-${NONCE}`,
+        phase: 'waiting',
+        crashPoint: crash,
+        startTime: startTime,
+        duration: duration,
+        now: now
     }
 }
 
-// Generate deterministic fake bets for a round
+// Generate deterministic fake bets
 export function getFakeBets(roundId: string) {
-    // Hash roundId to get seed
-    let seed = 0
-    for (let i = 0; i < roundId.length; i++) seed = (seed << 5) - seed + roundId.charCodeAt(i)
-    const rng = mulberry32(seed)
+    // Hash roundId to get seed for bot behavior
+    const rng = cyrb128(roundId)
 
     const FAKE_USERS = ['User123', 'AviatorKing', 'LuckyGirl', 'Speedy', 'PilotToMoon', 'CrashMaster', 'ZeroRisk', 'BigWinner', 'CryptoFan', 'ZimChamp']
-
     const bets = []
-    const count = 5 + Math.floor(rng() * 10) // 5-15 fake users
+    const count = 5 + Math.floor(rng() * 10)
 
     for (let i = 0; i < count; i++) {
         bets.push({
             user: FAKE_USERS[Math.floor(rng() * FAKE_USERS.length)],
             amount: Math.floor(rng() * 500) + 10,
-            cashoutPoint: 1 + (rng() * rng() * 10), // Bias towards low cashouts
+            cashoutPoint: 1 + (rng() * rng() * 10),
         })
     }
-
     return bets.sort((a, b) => b.amount - a.amount)
 }
 
+// Get history of last N rounds
+// Since we are simulating "live", we can't just peek into future/past easily without storing them
+// For now, we'll maintain a runtime history or generate "past" by reversing nonce
 export function getRoundHistory(count: number = 10): number[] {
-    const now = Date.now()
-    let rounds = generateHourlySchedule(now)
-    let activeIndex = rounds.findIndex(r => r.startTime <= now && (r.startTime + r.duration) > now)
+    const history: number[] = []
+    // Look back from current nonce - 1
+    let tempNonce = NONCE - 1
 
-    // If active round found, we want rounds BEFORE it.
-    // If no active round (active simulation gap or end of list), find where we are
-    if (activeIndex === -1) {
-        // If we are past the last round of this hour batch (unlikely with 500 rounds), check logic.
-        // Or if we are before first round?
-        // Fallback: use all rounds that have ended
-        const endedRounds = rounds.filter(r => (r.startTime + r.duration) < now)
-        activeIndex = endedRounds.length
+    for (let i = 0; i < count; i++) {
+        if (tempNonce < 1) break // Start of world
+        const crash = generateProvablyFairCrash(SERVER_SEED, CLIENT_SEED, tempNonce)
+        history.push(crash)
+        tempNonce--
     }
 
-    // Collect history
-    let history: number[] = []
-
-    // Safety for beginning of hour
-    if (activeIndex < count) {
-        // Need previous hour
-        const prevHourRounds = generateHourlySchedule(now - 3600 * 1000)
-        // Take from end of prev hour
-        history = prevHourRounds.slice(-(count - activeIndex)).map(r => r.crashPoint)
-    }
-
-    // Add from current hour
-    // We want rounds from [activeIndex - needed] to [activeIndex]
-    const needed = count - history.length
-    const fromCurrent = rounds.slice(activeIndex - needed, activeIndex).map(r => r.crashPoint)
-    history = [...history, ...fromCurrent]
-
-    // Ensure we have exactly count (trim if needed or return whatever we found)
     return history
 }

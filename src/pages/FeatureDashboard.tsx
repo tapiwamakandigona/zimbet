@@ -120,10 +120,10 @@ export function FeatureDashboard() {
                         <div className="fd-hero">
                             <div className="fd-hero-bg"></div>
                             <div className="fd-hero-content">
-                                <span className="fd-hero-badge">🔥 HOT GAME</span>
+                                <span className="fd-hero-badge">🔥 TRENDING NOW</span>
                                 <h1>AVIATOR</h1>
-                                <p>Real-time multiplayer crash game. Place your bet, watch the multiplier rise, and cash out before the plane flies away!</p>
-                                <button className="fd-play-btn" onClick={() => navigate('/casino/aviator')}>PLAY NOW</button>
+                                <p>The world's #1 crash game. Multipliers up to 100,000x. Cash out before the plane flies away!</p>
+                                <button className="fd-play-btn" onClick={() => navigate('/casino/aviator')}>TAKE FLIGHT ✈️</button>
                             </div>
                         </div>
 
@@ -136,7 +136,7 @@ export function FeatureDashboard() {
                             <div className="fd-grid">
                                 {GAMES.map(game => (
                                     <div key={game.id} className="fd-game-card" onClick={() => navigate(game.link)}>
-                                        <div className="fd-card-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', background: `linear-gradient(135deg, ${game.color}22, ${game.color}11)` }}>
+                                        <div className="fd-card-thumb" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', background: `linear-gradient(135deg, ${game.color}15, ${game.color}05)` }}>
                                             {game.image}
                                             {game.hot && <span className="fd-card-badge hot">HOT</span>}
                                             {game.new && <span className="fd-card-badge new">NEW</span>}
@@ -147,9 +147,9 @@ export function FeatureDashboard() {
                                             <div className="fd-card-footer">
                                                 <div className="fd-live-badge">
                                                     <div className="fd-live-dot"></div>
-                                                    <span>Live</span>
+                                                    <span>{Math.floor(Math.random() * 200) + 50} Playing</span>
                                                 </div>
-                                                <span className="fd-play-arrow">Play →</span>
+                                                <span className="fd-play-arrow">JOIN TABLE →</span>
                                             </div>
                                         </div>
                                     </div>

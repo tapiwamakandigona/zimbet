@@ -88,10 +88,12 @@ export function Landing() {
     }
   }, [])
 
-  // Handle card click - redirect to login or game
+  // Handle card click - redirect appropriately based on auth state
   const handleGameClick = (gameLink: string) => {
     if (user && zimBetAccount) {
       navigate(gameLink)
+    } else if (user && !zimBetAccount) {
+      navigate('/setup') // User exists but hasn't set up account
     } else {
       navigate('/login')
     }

@@ -55,8 +55,29 @@ export function Aviator() {
     useEffect(() => { betAmountRef.current = betAmount }, [betAmount])
     useEffect(() => { zimBetAccountRef.current = zimBetAccount }, [zimBetAccount])
     useEffect(() => { activeBetRef.current = activeBet }, [activeBet])
-    useEffect(() => { activeBetRef.current = activeBet }, [activeBet])
     useEffect(() => { cashedOutRef.current = cashedOut }, [cashedOut])
+
+    // Fairness UI State
+    const [showFairness, setShowFairness] = useState(false)
+    const [clientSeedInput, setClientSeedInput] = useState('')
+
+    const toggleFairness = () => {
+        if (!showFairness) {
+            // Load current seed when opening
+            import('../../lib/aviatorEngine').then(mod => {
+                setClientSeedInput(mod.getClientSeed())
+            })
+        }
+        setShowFairness(!showFairness)
+    }
+
+    const saveClientSeed = () => {
+        import('../../lib/aviatorEngine').then(mod => {
+            mod.setClientSeed(clientSeedInput)
+            setShowFairness(false)
+            alert('Client Seed Updated! Will apply to next round.')
+        })
+    }
 
     // Initialize History
     useEffect(() => {
@@ -110,6 +131,23 @@ export function Aviator() {
         }
         return false
     }
+
+    // Helper to execute a refund transaction
+    const executeRefundTransaction = async (amount: number) => {
+        if (!zimBetAccountRef.current) return false
+
+        const { error } = await supabase.from('zimbet_accounts')
+            .update({ balance: Math.floor(zimBetAccountRef.current.balance + amount) })
+            .eq('id', zimBetAccountRef.current.id)
+
+        if (!error) {
+            refreshAccount()
+            return true
+        }
+        return false
+    }
+
+
 
     // --- GAME LOOP ---
     const lastRoundIdRef = useRef<string>('')
@@ -416,8 +454,33 @@ export function Aviator() {
                         <div className="wallet-pill">
                             <span className="green-text">{formatMoney(zimBetAccount?.balance || 0)}</span>
                             <button className="menu-btn" onClick={() => navigate('/dashboard')}>EXIT</button>
+                            <button className="menu-btn" style={{ background: '#2ecc71', marginLeft: '8px' }} onClick={toggleFairness}>FAIR</button>
                         </div>
                     </div>
+
+                    {/* Fairness Modal */}
+                    {showFairness && (
+                        <div className="waiting-overlay" style={{ background: 'rgba(0,0,0,0.9)', zIndex: 50 }}>
+                            <div className="control-panel" style={{ width: '300px' }}>
+                                <div className="bet-header">Provably Fair Settings</div>
+                                <div style={{ fontSize: '0.8rem', color: '#999', margin: '10px 0' }}>
+                                    Your Client Seed is combined with our Server Seed to generate results. Change it to verify fairness.
+                                </div>
+                                <div className="bet-input-row">
+                                    <label style={{ fontSize: '0.7rem' }}>Client Seed</label>
+                                    <input
+                                        value={clientSeedInput}
+                                        onChange={(e) => setClientSeedInput(e.target.value)}
+                                        style={{ background: '#000', border: '1px solid #333', padding: '8px', color: 'white' }}
+                                    />
+                                </div>
+                                <div className="auto-controls">
+                                    <button className="auto-btn" onClick={saveClientSeed} style={{ background: '#27ae60' }}>SAVE</button>
+                                    <button className="auto-btn" onClick={() => setShowFairness(false)} style={{ background: '#c0392b' }}>CLOSE</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="canvas-wrapper" ref={containerRef}>
                         <canvas ref={canvasRef} />
@@ -472,14 +535,16 @@ export function Aviator() {
                                         </button>
                                     ) : (
                                         gameState?.phase === 'waiting' ? (
-                                            <button className="bet-btn cancel" onClick={() => {
-                                                // Refund logic if implemented, or just disable
-                                                // For now, no cancel once placed in waiting (like real game often locks)
-                                                // But we can implement refund if we want.
-                                                setActiveBet(false) // Visual only for now, real refund requires DB
+                                            <button className="bet-btn cancel" onClick={async () => {
+                                                const amount = betAmountRef.current
+                                                const success = await executeRefundTransaction(amount)
+                                                if (success) {
+                                                    setActiveBet(false)
+                                                    broadcastBet(-amount)
+                                                }
                                             }}>
-                                                <div className="btn-label">BET PLACED</div>
-                                                <div className="btn-sub">WAITING...</div>
+                                                <div className="btn-label">CANCEL BET</div>
+                                                <div className="btn-sub">REFUND</div>
                                             </button>
                                         ) : (
                                             <button className="bet-btn cashout" onClick={handleCashout}>

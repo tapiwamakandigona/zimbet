@@ -1,13 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { supabase, CASINO_BETS } from '../../lib/supabase'
-import { generateMinesGrid, calculateMinesMultiplier, getRandomMessage, createSession, updateSession, formatMoney } from '../../lib/gameEngine'
-import { soundManager } from '../../lib/audio' // Import audio
+import { calculateMinesMultiplier, getRandomMessage, createSession, updateSession, formatMoney, generateSeed, isMine, getDeterministicMineIndices } from '../../lib/gameEngine'
+import { soundManager } from '../../lib/audio'
 import type { GameSession } from '../../lib/gameEngine'
 import './Mines.css'
 
-const GRID_SIZE = 25 // 5x5
+const GRID_SIZE = 25
 
 type TileState = 'hidden' | 'gem' | 'mine'
 
@@ -19,12 +19,15 @@ export function Mines() {
     const [minesCount, setMinesCount] = useState<number>(5)
     const [gameActive, setGameActive] = useState(false)
     const [tiles, setTiles] = useState<TileState[]>(new Array(GRID_SIZE).fill('hidden'))
-    const [minePositions, setMinePositions] = useState<boolean[]>([])
     const [revealedCount, setRevealedCount] = useState(0)
     const [gameOver, setGameOver] = useState(false)
     const [hitMine, setHitMine] = useState(false)
     const [message, setMessage] = useState('')
     const [session, setSession] = useState<GameSession>(createSession())
+
+    // Security: Store seed in Ref so it's not easily inspectable in React DevTools "State"
+    const serverSeedRef = useRef<string>('')
+    const nonceRef = useRef<number>(0)
 
     const currentMultiplier = useMemo(() => {
         if (revealedCount === 0) return 1.00
@@ -43,7 +46,7 @@ export function Mines() {
             return
         }
 
-        soundManager.playAction() // Sound
+        soundManager.playAction()
 
         // Deduct bet
         await supabase
@@ -51,9 +54,10 @@ export function Mines() {
             .update({ balance: zimBetAccount.balance - betAmount })
             .eq('id', zimBetAccount.id)
 
-        // Generate mine positions
-        const mines = generateMinesGrid(GRID_SIZE, minesCount)
-        setMinePositions(mines)
+        // Generate Secure Seed (Not stored in State)
+        serverSeedRef.current = generateSeed()
+        nonceRef.current = 1 // Start at nonce 1
+
         setTiles(new Array(GRID_SIZE).fill('hidden'))
         setRevealedCount(0)
         setGameActive(true)
@@ -68,14 +72,31 @@ export function Mines() {
 
         const newTiles = [...tiles]
 
-        if (minePositions[index]) {
+        // Deterministic Check: Is this a mine?
+        // We do NOT check a stored array. We verify against the Seed.
+        const isMineTile = isMine(serverSeedRef.current, nonceRef.current, GRID_SIZE, minesCount, index)
+
+        if (isMineTile) {
             // Hit mine - game over
-            soundManager.playLoss() // Sound
+            soundManager.playLoss()
+
+            if (zimBetAccount) {
+                supabase.from('zimbet_accounts')
+                    .update({
+                        total_losses: zimBetAccount.total_losses + 1,
+                        total_earnings: zimBetAccount.total_earnings - betAmount
+                    })
+                    .eq('id', zimBetAccount.id)
+                    .then(() => refreshAccount())
+            }
+
             newTiles[index] = 'mine'
-            // Reveal all mines
-            minePositions.forEach((isMine, i) => {
-                if (isMine) newTiles[i] = 'mine'
+            // Reveal all mines (Deterministic generation for display)
+            const allMines = getDeterministicMineIndices(serverSeedRef.current, nonceRef.current, GRID_SIZE, minesCount)
+            allMines.forEach(i => {
+                newTiles[i] = 'mine'
             })
+
             setTiles(newTiles)
             setHitMine(true)
             setGameOver(true)
@@ -84,7 +105,7 @@ export function Mines() {
             setSession(updateSession(session, betAmount, 0, false))
         } else {
             // Safe tile - gem found
-            soundManager.playGem() // Sound
+            soundManager.playGem()
             newTiles[index] = 'gem'
             setTiles(newTiles)
             setRevealedCount(prev => prev + 1)
@@ -94,10 +115,9 @@ export function Mines() {
     const cashout = async () => {
         if (!gameActive || revealedCount === 0) return
 
-        soundManager.playWin() // Sound
+        soundManager.playWin()
         const winnings = potentialWin
 
-        // Add winnings
         if (zimBetAccount) {
             await supabase
                 .from('zimbet_accounts')
@@ -109,10 +129,11 @@ export function Mines() {
                 .eq('id', zimBetAccount.id)
         }
 
-        // Reveal all mines
+        // Reveal mines for transparency
         const newTiles = [...tiles]
-        minePositions.forEach((isMine, i) => {
-            if (isMine && tiles[i] === 'hidden') newTiles[i] = 'mine'
+        const allMines = getDeterministicMineIndices(serverSeedRef.current, nonceRef.current, GRID_SIZE, minesCount)
+        allMines.forEach(i => {
+            if (tiles[i] === 'hidden') newTiles[i] = 'mine'
         })
         setTiles(newTiles)
 
@@ -125,7 +146,7 @@ export function Mines() {
 
     const resetGame = () => {
         setTiles(new Array(GRID_SIZE).fill('hidden'))
-        setMinePositions([])
+        serverSeedRef.current = '' // Clear seed
         setRevealedCount(0)
         setGameActive(false)
         setGameOver(false)

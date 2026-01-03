@@ -42,6 +42,7 @@ export function Wheel() {
 
         // Get result
         const spinResult = spinWheel()
+        setResult(spinResult) // Set early so it exists for transitionEnd
 
         // Calculate rotation
         const segmentIndex = WHEEL_SEGMENTS.findIndex(s => s.multiplier === spinResult.multiplier)
@@ -54,46 +55,49 @@ export function Wheel() {
 
         setRotation(finalRotation)
 
-        // Wait for spin animation
-        setTimeout(async () => {
-            setResult(spinResult)
+        setRotation(finalRotation)
+    }
 
-            const winnings = Math.floor(wholeBet * spinResult.multiplier)
-            const isWin = spinResult.multiplier > 0
+    const handleSpinComplete = async () => {
+        if (!isSpinning || !result) return // Should not happen in flow
 
-            if (isWin) {
-                // Sound
-                if (spinResult.multiplier >= 5) soundManager.playJackpot()
-                else soundManager.playWin()
+        const spinResult = result
+        const wholeBet = Math.floor(betAmount)
+        const winnings = Math.floor(wholeBet * spinResult.multiplier)
+        const isWin = spinResult.multiplier > 0
 
-                await supabase
-                    .from('zimbet_accounts')
-                    .update({
-                        balance: Math.floor(zimBetAccount.balance - wholeBet + winnings),
-                        total_wins: zimBetAccount.total_wins + 1,
-                        total_earnings: Math.floor(zimBetAccount.total_earnings + (winnings - wholeBet))
-                    })
-                    .eq('id', zimBetAccount.id)
+        if (isWin) {
+            // Sound
+            if (spinResult.multiplier >= 5) soundManager.playJackpot()
+            else soundManager.playWin()
 
-                setMessage(spinResult.multiplier >= 5 ? getRandomMessage('bigWin') : getRandomMessage('win'))
-                setSession(updateSession(session, wholeBet, winnings, true))
-            } else {
-                soundManager.playLoss() // Sound
-                await supabase
-                    .from('zimbet_accounts')
-                    .update({
-                        total_losses: zimBetAccount.total_losses + 1,
-                        total_earnings: Math.floor(zimBetAccount.total_earnings - wholeBet)
-                    })
-                    .eq('id', zimBetAccount.id)
+            await supabase
+                .from('zimbet_accounts')
+                .update({
+                    balance: Math.floor(zimBetAccount!.balance - wholeBet + winnings), // Optimistic balance valid here? No, we need fresh. Safe to use cached for now if no concurrent tabs.
+                    total_wins: zimBetAccount!.total_wins + 1,
+                    total_earnings: Math.floor(zimBetAccount!.total_earnings + (winnings - wholeBet))
+                })
+                .eq('id', zimBetAccount!.id)
 
-                setMessage(getRandomMessage('lose'))
-                setSession(updateSession(session, wholeBet, 0, false))
-            }
+            setMessage(spinResult.multiplier >= 5 ? getRandomMessage('bigWin') : getRandomMessage('win'))
+            setSession(prev => updateSession(prev, wholeBet, winnings, true))
+        } else {
+            soundManager.playLoss() // Sound
+            await supabase
+                .from('zimbet_accounts')
+                .update({
+                    total_losses: zimBetAccount!.total_losses + 1,
+                    total_earnings: Math.floor(zimBetAccount!.total_earnings - wholeBet)
+                })
+                .eq('id', zimBetAccount!.id)
 
-            setIsSpinning(false)
-            refreshAccount()
-        }, 4000)
+            setMessage(getRandomMessage('lose'))
+            setSession(prev => updateSession(prev, wholeBet, 0, false))
+        }
+
+        setIsSpinning(false)
+        refreshAccount()
     }
 
     return (
@@ -124,6 +128,7 @@ export function Wheel() {
                             background: 'transparent',
                             boxShadow: 'none'
                         }}
+                        onTransitionEnd={handleSpinComplete}
                     >
                         <svg viewBox="0 0 100 100" className="wheel-svg">
                             {WHEEL_SEGMENTS.map((segment, index) => {

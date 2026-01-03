@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Same Supabase project as ZimPay
-const supabaseUrl = 'https://ilhwoebtxxkudihfgmub.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlsaHdvZWJ0eHhrdWRpaGZnbXViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwNDQ3ODIsImV4cCI6MjA4MjYyMDc4Mn0.gHgoACn3MS-Y2Yy4I_cdh5sKuuV7hRikyVmm6OfP8zM'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {

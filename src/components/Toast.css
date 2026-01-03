@@ -14,16 +14,16 @@
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
-    background: rgba(30, 41, 59, 0.95);
+    background: var(--color-bg-surface);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 14px;
-    color: white;
+    color: var(--color-text-base);
     font-weight: 500;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     cursor: pointer;
     pointer-events: auto;
-    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: toastSlideIn 0.4s var(--ease-spring);
     min-width: 280px;
     max-width: 400px;
 }
@@ -52,28 +52,29 @@
 }
 
 .toast-success .toast-icon {
-    background: rgba(34, 197, 94, 0.2);
-    color: #22c55e;
+    background: var(--color-trust-dim);
+    color: var(--color-trust);
 }
 
 .toast-error .toast-icon {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-action);
 }
 
 .toast-info .toast-icon {
     background: rgba(59, 130, 246, 0.2);
     color: #3b82f6;
+    /* Keep blue for generic info */
 }
 
 .toast-win {
     background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(245, 158, 11, 0.1));
     border-color: rgba(234, 179, 8, 0.4);
-    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1), winPulse 0.5s ease-out 0.3s;
+    animation: toastSlideIn 0.4s var(--ease-spring), winPulse 0.5s ease-out 0.3s;
 }
 
 .toast-win .toast-icon {
-    background: rgba(234, 179, 8, 0.3);
+    background: var(--color-wealth-glow);
     font-size: 1.5rem;
 }
 
@@ -103,10 +104,8 @@
 .toast-amount {
     font-size: 1.5rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--color-wealth);
+    text-shadow: 0 0 10px var(--color-wealth-glow);
 }
 
 @media (max-width: 480px) {

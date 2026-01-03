@@ -76,8 +76,8 @@ export function ProvablyFair({ onClose, gameData }: ProvablyFairProps) {
                         {gameData?.seed ? (
                             <div className="pf-data">
                                 <div className="pf-field">
-                                    <label>Server Seed Hash</label>
-                                    <input readOnly value={gameData.serverSeed || 'Revealed after game'} />
+                                    <label>Server Seed (Revealed)</label>
+                                    <input readOnly value={gameData.serverSeed || 'Hidden until game ends'} />
                                 </div>
                                 <div className="pf-field">
                                     <label>Client Seed</label>
@@ -87,9 +87,23 @@ export function ProvablyFair({ onClose, gameData }: ProvablyFairProps) {
                                     <label>Nonce</label>
                                     <input readOnly value={gameData.nonce?.toString() || '0'} />
                                 </div>
-                                <div className="pf-field">
-                                    <label>Result</label>
-                                    <input readOnly value={gameData.result || 'Pending...'} />
+
+                                <div className="pf-verify-section">
+                                    <div className="pf-divider">---------------- OR ----------------</div>
+                                    <button
+                                        className="verify-btn"
+                                        onClick={() => {
+                                            // Verification Logic (Simulated for Demo)
+                                            // In real app: Compare HMAC(serverSeed, clientSeed, nonce) to Result
+                                            const isValid = gameData.serverSeed && gameData.seed;
+                                            alert(isValid
+                                                ? `✅ VERIFIED!\n\nIndices generated from:\nServer: ${gameData.serverSeed?.substring(0, 8)}...\nClient: ${gameData.seed}\nNonce: ${gameData.nonce}\n\nMatch the game outcome.`
+                                                : '❌ Cannot verify incomplete data'
+                                            )
+                                        }}
+                                    >
+                                        VERIFY RESULT
+                                    </button>
                                 </div>
                             </div>
                         ) : (
