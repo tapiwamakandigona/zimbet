@@ -3,21 +3,28 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ToastProvider } from './components/Toast'
 import { MobileNav } from './components/MobileNav'
-import { Login } from './pages/Login'
 import './App.css'
 
-// Lazy Load Pages for Efficiency
-const Landing = lazy(() => import('./pages/Landing').then(m => ({ default: m.Landing })))
-const FeatureDashboard = lazy(() => import('./pages/FeatureDashboard').then(m => ({ default: m.FeatureDashboard })))
-const SetupAccount = lazy(() => import('./pages/SetupAccount').then(m => ({ default: m.SetupAccount })))
-const Game = lazy(() => import('./pages/Game').then(m => ({ default: m.Game })))
-const CasinoLobby = lazy(() => import('./pages/CasinoLobby').then(m => ({ default: m.CasinoLobby })))
-const Aviator = lazy(() => import('./pages/games/Aviator').then(m => ({ default: m.Aviator })))
-const Coinflip = lazy(() => import('./pages/games/Coinflip').then(m => ({ default: m.Coinflip })))
-const Dice = lazy(() => import('./pages/games/Dice').then(m => ({ default: m.Dice })))
-const Mines = lazy(() => import('./pages/games/Mines').then(m => ({ default: m.Mines })))
-const Wheel = lazy(() => import('./pages/games/Wheel').then(m => ({ default: m.Wheel })))
-const Plinko = lazy(() => import('./pages/games/Plinko').then(m => ({ default: m.Plinko })))
+// Helper for cleaner lazy imports of named exports
+const lazyLoad = <T extends React.ComponentType>(
+  importFn: () => Promise<{ [key: string]: T }>,
+  exportName: string
+) => lazy(() => importFn().then(m => ({ default: m[exportName] as T })))
+
+// Lazy Load ALL Pages for Efficiency
+const Login = lazyLoad(() => import('./pages/Login'), 'Login')
+const Landing = lazyLoad(() => import('./pages/Landing'), 'Landing')
+const FeatureDashboard = lazyLoad(() => import('./pages/FeatureDashboard'), 'FeatureDashboard')
+const SetupAccount = lazyLoad(() => import('./pages/SetupAccount'), 'SetupAccount')
+const Game = lazyLoad(() => import('./pages/Game'), 'Game')
+const CasinoLobby = lazyLoad(() => import('./pages/CasinoLobby'), 'CasinoLobby')
+const Aviator = lazyLoad(() => import('./pages/games/Aviator'), 'Aviator')
+const Coinflip = lazyLoad(() => import('./pages/games/Coinflip'), 'Coinflip')
+const Dice = lazyLoad(() => import('./pages/games/Dice'), 'Dice')
+const Mines = lazyLoad(() => import('./pages/games/Mines'), 'Mines')
+const Wheel = lazyLoad(() => import('./pages/games/Wheel'), 'Wheel')
+const Plinko = lazyLoad(() => import('./pages/games/Plinko'), 'Plinko')
+
 
 function LoadingScreen({ msg }: { msg?: string }) {
   return (

@@ -13,13 +13,13 @@ gainNode.gain.value = isMuted ? 0 : 0.6
 
 // File-based assets (User can drop these in public/sounds/)
 const ASSETS: Record<string, HTMLAudioElement> = {
-    click: new Audio('/sounds/click.mp3'),
-    hover: new Audio('/sounds/hover.mp3'),
-    win: new Audio('/sounds/win.mp3'),
-    loss: new Audio('/sounds/loss.mp3'),
-    spin: new Audio('/sounds/spin.mp3'),
-    crash: new Audio('/sounds/crash.mp3'),
-    coin: new Audio('/sounds/coin.mp3')
+    click: new Audio('/zimbet/sounds/click.mp3'),
+    hover: new Audio('/zimbet/sounds/hover.mp3'),
+    win: new Audio('/zimbet/sounds/win.mp3'),
+    loss: new Audio('/zimbet/sounds/loss.mp3'),
+    spin: new Audio('/zimbet/sounds/spin.mp3'),
+    crash: new Audio('/zimbet/sounds/crash.mp3'),
+    coin: new Audio('/zimbet/sounds/coin.mp3')
 }
 
 // Preload (silent fail if missing)
