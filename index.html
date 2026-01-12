@@ -10,11 +10,34 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f172a" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Security Configuration -->
+  <!-- Relaxed CSP to prevent regression -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; object-src 'none'; base-uri 'self';">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+
+  <!-- SEO & Social Media -->
+  <title>ZimBet | Premium Crypto Casino & Games</title>
   <meta name="description"
     content="ZimBet - Premium Casino Experience. Play Aviator, Mines, Wheel, Plinko and more. Instant payouts via ZimPay. Provably fair gaming." />
-  <title>ZimBet | Premium Casino</title>
+  <meta name="keywords" content="zimbet, crypto casino, aviator, mines, plinko, online casino, provably fair, gambling, zimpay">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="/zimbet/">
+  <meta property="og:title" content="ZimBet | Premium Crypto Casino & Games">
+  <meta property="og:description" content="Play Provably Fair games like Aviator, Mines, and Plinko at ZimBet. Instant payouts and premium experience.">
+  <meta property="og:image" content="/zimbet/icon-512.png">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary">
+  <meta property="twitter:title" content="ZimBet | Premium Crypto Casino">
+  <meta property="twitter:description" content="Play Provably Fair games like Aviator, Mines, and Plinko at ZimBet.">
+  <meta property="twitter:image" content="/zimbet/icon-512.png">
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
   <script type="module" crossorigin src="/zimbet/assets/index-K2Td80xA.js"></script>
   <link rel="stylesheet" crossorigin href="/zimbet/assets/index-DJkHWRzV.css">
 </head>
