@@ -1,34 +1,73 @@
-# ZimBet - Premium Crypto Casino
+# React + TypeScript + Vite
 
-ZimBet is a premium crypto casino and sports betting platform offering a variety of provably fair games including Aviator, Mines, Wheel, and Plinko.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
+Currently, two official plugins are available:
 
-- **Provably Fair Gaming**: Verify every roll and game outcome.
-- **Crypto Payments**: Fast and secure transactions via ZimPay.
-- **Responsive Design**: Optimized for mobile and desktop play.
-- **PWA Support**: Installable as a Progressive Web App.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Deployment
+## React Compiler
 
-This repository contains the production build of the ZimBet application.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-### Hosting
+## Expanding the ESLint configuration
 
-The site is designed to be hosted on GitHub Pages or any static site provider. The base path is configured for `/zimbet/`.
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### Development
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-This branch (`gh-pages` or deployment branch) contains compiled assets. For development, please switch to the source branch (typically `main` or `master`).
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
 
-## Games
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
 
-- **Aviator**: Crash game logic.
-- **Mines**: Classic minesweeper style betting.
-- **Plinko**: Ball drop game.
-- **Wheel**: Spin the wheel.
-- **Coinflip**: Heads or tails.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Security
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-Security headers are implemented via meta tags in `index.html` including Content Security Policy (CSP) and Referrer Policy.
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
