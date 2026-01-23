@@ -1,0 +1,559 @@
+/* Feature Dashboard Styles */
+/* Using Global Tokens from index.css now */
+
+.feature-dashboard {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-base);
+    font-family: var(--font-sans);
+    overflow: hidden;
+}
+
+/* Sidebar */
+.fd-sidebar {
+    width: 260px;
+    background: var(--color-bg-surface);
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    /* Subtle border */
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    flex-shrink: 0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+    /* Glassmorphism */
+}
+
+.fd-brand {
+    padding: 0 24px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.fd-brand-icon {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 0 8px var(--color-action));
+}
+
+.fd-brand span:not(.fd-brand-icon) {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: white;
+    /* Keep brand strictly white for contrast */
+}
+
+.fd-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0 12px;
+    flex: 1;
+}
+
+.fd-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+}
+
+.fd-nav-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--color-text-base);
+    transform: translateX(4px);
+    /* Micro-interaction */
+}
+
+.fd-nav-item.active {
+    background: rgba(239, 68, 68, 0.08);
+    /* Using Action color logic */
+    color: var(--color-action);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.fd-nav-item.logout {
+    color: var(--color-action);
+    opacity: 0.8;
+}
+
+.fd-nav-item.logout:hover {
+    background: rgba(239, 68, 68, 0.1);
+    opacity: 1;
+}
+
+.fd-user-section {
+    padding: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.fd-user-card {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fd-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--color-action);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.fd-user-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.fd-username {
+    display: block;
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--color-text-base);
+}
+
+.fd-balance {
+    display: block;
+    color: var(--color-wealth);
+    /* Semantic Wealth Color */
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--color-wealth-glow);
+}
+
+/* Main Content */
+.fd-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    position: relative;
+    scrollbar-width: thin;
+    /* Use transparent scrollbar for sleekness */
+}
+
+/* Header (Mobile Only) */
+.fd-mobile-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: rgba(19, 19, 31, 0.9);
+    /* Surface color with opacity */
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.fd-mobile-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fd-mobile-balance {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-wealth);
+    background: rgba(251, 191, 36, 0.1);
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* Panels */
+.fd-panel {
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    animation: fadeUp 0.3s var(--ease-smooth) forwards;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fd-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.fd-panel-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-base);
+}
+
+.fd-back-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--color-text-muted);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.fd-back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Hero Section */
+.fd-hero {
+    height: 380px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 40px;
+    margin-bottom: 40px;
+    /* Clean gradient overlay */
+}
+
+.fd-hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Action color gradient */
+    background: radial-gradient(circle at 80% 50%, rgba(239, 68, 68, 0.15) 0%, transparent 70%);
+    z-index: 0;
+}
+
+.fd-hero-content {
+    position: relative;
+    z-index: 10;
+    max-width: 520px;
+}
+
+.fd-hero-badge {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    /* Hardcoded to ensure visibility */
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: inline-block;
+    margin-bottom: 20px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fd-hero h1 {
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    /* Gradient Text */
+    background: linear-gradient(135deg, white 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+.fd-hero p {
+    color: var(--color-text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 32px;
+    line-height: 1.6;
+    max-width: 90%;
+}
+
+.fd-play-btn {
+    background: var(--color-action);
+    color: white;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s var(--ease-spring);
+    box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fd-play-btn:hover {
+    background: var(--color-action-hover);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4);
+}
+
+/* Games Grid */
+.fd-section {
+    padding: 0 40px;
+    margin-bottom: 40px;
+}
+
+.fd-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 24px;
+    font-weight: 700;
+    color: var(--color-text-base);
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fd-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 24px;
+}
+
+.fd-game-card {
+    background: var(--color-bg-card);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: all 0.3s var(--ease-smooth);
+    height: 280px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.fd-game-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    background: #232338;
+    /* Slightly lighter card bg on hover */
+}
+
+.fd-card-thumb {
+    height: 160px;
+    background: #151520;
+    /* Darker placeholder */
+    position: relative;
+    overflow: hidden;
+}
+
+.fd-card-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fd-card-badge.hot {
+    background: var(--color-action);
+    color: white;
+}
+
+.fd-card-badge.new {
+    background: var(--color-trust);
+    color: white;
+}
+
+.fd-card-info {
+    padding: 16px 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.fd-card-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+    color: white;
+}
+
+.fd-card-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.fd-card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    padding-top: 12px;
+}
+
+.fd-play-arrow {
+    color: var(--color-action);
+    font-weight: 700;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s var(--ease-spring);
+}
+
+.fd-game-card:hover .fd-play-arrow {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.fd-live-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-trust);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.fd-live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-trust);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--color-trust);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(0.9);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .feature-dashboard {
+        flex-direction: column;
+    }
+
+    .fd-sidebar {
+        display: none;
+    }
+
+    .fd-mobile-header {
+        display: flex;
+    }
+
+    .fd-main {
+        padding-bottom: 80px;
+    }
+
+    .fd-hero {
+        height: auto;
+        padding: 32px 24px;
+        text-align: center;
+        /* Simplify gradient for mobile */
+        background: radial-gradient(circle at 50% 100%, rgba(239, 68, 68, 0.1) 0%, transparent 60%);
+    }
+
+    .fd-hero-content {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .fd-hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .fd-section {
+        padding: 0 20px;
+    }
+
+    .fd-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .fd-game-card {
+        height: 230px;
+    }
+
+    .fd-card-thumb {
+        height: 100px;
+    }
+
+    .fd-card-info {
+        padding: 12px;
+    }
+
+    .fd-card-title {
+        font-size: 0.95rem;
+    }
+
+    .fd-card-desc,
+    .fd-live-badge {
+        display: none;
+        /* Reduce noise on mobile */
+    }
+
+    .fd-card-footer {
+        justify-content: center;
+        padding-top: 8px;
+    }
+
+    .fd-play-arrow {
+        opacity: 1;
+        transform: none;
+        color: var(--color-text-dim);
+        font-size: 0.8rem;
+    }
+}
