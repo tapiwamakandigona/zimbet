@@ -1,0 +1,217 @@
+.pf-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.pf-modal {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow: auto;
+    position: relative;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pf-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #94a3b8;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pf-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.pf-header {
+    text-align: center;
+    padding: 40px 20px 20px;
+}
+
+.pf-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.pf-header h2 {
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 0 8px;
+}
+
+.pf-header p {
+    color: #64748b;
+    margin: 0;
+}
+
+.pf-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0 20px;
+}
+
+.pf-tabs button {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 16px;
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.pf-tabs button.active {
+    color: white;
+}
+
+.pf-tabs button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e23333;
+}
+
+.pf-content {
+    padding: 24px;
+}
+
+.pf-step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.pf-step-num {
+    width: 32px;
+    height: 32px;
+    background: rgba(226, 51, 51, 0.2);
+    color: #e23333;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.pf-step-info h4 {
+    color: white;
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+}
+
+.pf-step-info p {
+    color: #94a3b8;
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.pf-guarantee {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    padding: 16px;
+    border-radius: 12px;
+    margin-top: 24px;
+}
+
+.pf-check {
+    width: 24px;
+    height: 24px;
+    background: #22c55e;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.pf-guarantee span:last-child {
+    color: #22c55e;
+    font-weight: 500;
+}
+
+.pf-data {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.pf-field label {
+    display: block;
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pf-field input {
+    width: 100%;
+    padding: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.pf-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+}
