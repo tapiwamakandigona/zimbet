@@ -1,5 +1,6 @@
 // Advanced Hybrid Audio Manager
-// Supports MP3s (if available in public/sounds/) or falls back to Pro-Procedural Synth
+// Prioritizes "Real Audio" (MP3/WAV) from /sounds/ directory.
+// Falls back to "Pro-Procedural" Synthesis if files are missing.
 
 let audioCtx: AudioContext | null = null
 let gainNode: GainNode | null = null
@@ -20,23 +21,26 @@ function getContext() {
 
 let isMuted = localStorage.getItem('zimbet_muted') === 'true'
 
-// File-based assets (User can drop these in public/sounds/)
+// File-based assets (Place these in public/sounds/)
+// Mapped to realistic casino sounds
 const ASSETS: Record<string, HTMLAudioElement> = {
-    click: new Audio('/zimbet/sounds/click.mp3'),
-    hover: new Audio('/zimbet/sounds/hover.mp3'),
-    win: new Audio('/zimbet/sounds/win.mp3'),
-    loss: new Audio('/zimbet/sounds/loss.mp3'),
-    spin: new Audio('/zimbet/sounds/spin.mp3'),
-    crash: new Audio('/zimbet/sounds/crash.mp3'),
-    coin: new Audio('/zimbet/sounds/coin.mp3')
+    click: new Audio('/sounds/click.mp3'),           // Mechanical switch
+    hover: new Audio('/sounds/hover.mp3'),           // Soft air whoosh
+    win: new Audio('/sounds/win.mp3'),               // Cash register + Chime
+    loss: new Audio('/sounds/loss.mp3'),             // Thud or error tone
+    spin: new Audio('/sounds/spin.mp3'),             // Card shuffle / Wheel whir
+    crash: new Audio('/sounds/crash.mp3'),           // Glass break / Explosion
+    coin: new Audio('/sounds/coin.mp3'),             // Metal chip clink
+    jackpot: new Audio('/sounds/jackpot.mp3')        // Orchestral hit
 }
 
 // Preload (silent fail if missing)
 Object.values(ASSETS).forEach(audio => {
     audio.volume = 0.5
+    audio.load()
 })
 
-// --- PRO SYNTHESIS ENGINE ---
+// --- PRO SYNTHESIS ENGINE (Backup) ---
 
 // Helper: Play a sound, prefer file, fallback to synth
 async function playSound(name: keyof typeof ASSETS, synthFn: (ctx: AudioContext, dest: AudioNode) => void) {
@@ -45,15 +49,21 @@ async function playSound(name: keyof typeof ASSETS, synthFn: (ctx: AudioContext,
     if (audioCtx.state === 'suspended') await audioCtx.resume()
     if (isMuted) return
 
-    // Hybrid with Try-Catch
+    // 1. Try playing Real Audio File
     const audio = ASSETS[name]
-    try {
-        if (audio) {
+    if (audio) {
+        try {
             audio.currentTime = 0
-            audio.play().catch(() => { })
+            // If the file loads successfully, play it
+            // We use a promise to detect if it actually plays or fails (e.g. 404)
+            await audio.play()
+            return // If successful, skip synth
+        } catch (e) {
+            // File missing or blocked -> Fallback to Synth
         }
-    } catch (e) { }
+    }
 
+    // 2. Fallback to Synth (Procedural)
     synthFn(audioCtx, gainNode!)
 }
 
@@ -73,7 +83,6 @@ function playSuperSaw(freq: number, duration: number, time: number, ctx: AudioCo
     osc1.start(time); osc2.start(time); osc3.start(time)
     osc1.stop(time + duration); osc2.stop(time + duration); osc3.stop(time + duration)
 
-    // GC Cleanup
     setTimeout(() => {
         osc1.disconnect(); osc2.disconnect(); osc3.disconnect(); env.disconnect();
     }, duration * 1000 + 100)
@@ -106,7 +115,7 @@ function playFMBell(freq: number, duration: number, time: number, ctx: AudioCont
     }, duration * 1000 + 100)
 }
 
-// 3. Crisp Click (Filtered Noise)
+// 3. Crisp Click (Filtered Noise - Less Robotic)
 function playCrispClick(time: number, ctx: AudioContext, dest: AudioNode) {
     const bufferSize = ctx.sampleRate * 0.05 // 50ms
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
@@ -121,7 +130,7 @@ function playCrispClick(time: number, ctx: AudioContext, dest: AudioNode) {
     filter.frequency.value = 2000
 
     const env = ctx.createGain()
-    env.gain.setValueAtTime(0.5, time)
+    env.gain.setValueAtTime(0.3, time) // Lower volume for subtlety
     env.gain.exponentialRampToValueAtTime(0.01, time + 0.05)
 
     noise.connect(filter).connect(env).connect(dest)
@@ -147,16 +156,16 @@ export const soundManager = {
     }),
 
     playHover: () => playSound('hover', (ctx, dest) => {
+        // Less annoying hover (Tick instead of Sweep)
         const t = ctx.currentTime
         const osc = ctx.createOscillator()
         osc.type = 'sine'
-        osc.frequency.setValueAtTime(600, t)
+        osc.frequency.setValueAtTime(800, t)
         const env = ctx.createGain()
-        env.gain.setValueAtTime(0.05, t)
-        env.gain.exponentialRampToValueAtTime(0.001, t + 0.02)
+        env.gain.setValueAtTime(0.02, t) // Very quiet
+        env.gain.exponentialRampToValueAtTime(0.001, t + 0.01) // Super short
         osc.connect(env).connect(dest)
-        osc.start(t); osc.stop(t + 0.03)
-        setTimeout(() => { osc.disconnect(); env.disconnect(); }, 50)
+        osc.start(t); osc.stop(t + 0.02)
     }),
 
     playCoin: () => playSound('coin', (ctx, dest) => {
@@ -181,7 +190,6 @@ export const soundManager = {
         env.gain.linearRampToValueAtTime(0, t + 0.2)
         osc.connect(env).connect(dest)
         osc.start(t); osc.stop(t + 0.2)
-        setTimeout(() => { osc.disconnect(); env.disconnect(); }, 250)
     }),
 
     playWin: () => playSound('win', (ctx, dest) => {
@@ -190,15 +198,12 @@ export const soundManager = {
         playSuperSaw(523.25, 0.4, t, ctx, dest)
         playSuperSaw(659.25, 0.4, t + 0.05, ctx, dest)
         playSuperSaw(783.99, 0.4, t + 0.1, ctx, dest)
-        playSuperSaw(1046.50, 0.8, t + 0.15, ctx, dest)
-        // Add coin jingling sound layer
-        setTimeout(() => playFMBell(1500, 0.2, t + 0.1, ctx, dest), 100)
     }),
 
-    playJackpot: () => playSound('win', (ctx, dest) => {
-        // Big Win sequence
+    playJackpot: () => playSound('jackpot', (ctx, dest) => {
+        // Fallback to Win sequence repeated if file missing
         const t = ctx.currentTime
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 5; i++) {
             playSuperSaw(500 + i * 100, 0.1, t + i * 0.1, ctx, dest)
         }
     }),
@@ -206,14 +211,13 @@ export const soundManager = {
     playLoss: () => playSound('loss', (ctx, dest) => {
         const t = ctx.currentTime
         const osc = ctx.createOscillator()
-        osc.type = 'sawtooth'
+        osc.type = 'triangle' // Softer than sawtooth
         osc.frequency.setValueAtTime(150, t)
-        osc.frequency.exponentialRampToValueAtTime(40, t + 0.4)
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.3)
         const env = ctx.createGain()
         env.gain.setValueAtTime(0.3, t)
-        env.gain.linearRampToValueAtTime(0, t + 0.4)
+        env.gain.linearRampToValueAtTime(0, t + 0.3)
         osc.connect(env).connect(dest)
-        osc.start(t); osc.stop(t + 0.4)
-        setTimeout(() => { osc.disconnect(); env.disconnect(); }, 450)
+        osc.start(t); osc.stop(t + 0.3)
     })
 }

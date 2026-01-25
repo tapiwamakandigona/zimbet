@@ -29,47 +29,21 @@ export function Wallet() {
             const cleanUser = zimpayUsername.replace('@', '').trim()
             if (cleanUser.toLowerCase().startsWith('zm-')) throw new Error('Cannot withdraw to ZimBet')
 
-            const { data: recipient, error: searchError } = await supabase
-                .from('profiles')
-                .select('id, balance')
-                .eq('username', cleanUser)
-                .single()
-
-            if (searchError || !recipient) throw new Error('User not found')
-
-            // Deduct
-            const { error: deductErr } = await supabase
-                .from('zimbet_accounts')
-                .update({ balance: Math.floor(zimBetAccount.balance - amount) })
-                .eq('id', zimBetAccount.id)
-            if (deductErr) throw deductErr
-
-            // Add
-            const { error: addErr } = await supabase
-                .from('profiles')
-                .update({ balance: Math.floor(recipient.balance + amount) })
-                .eq('id', recipient.id)
-
-            if (addErr) {
-                // Refund
-                await supabase.from('zimbet_accounts').update({ balance: zimBetAccount.balance }).eq('id', zimBetAccount.id)
-                throw addErr
-            }
-
-            // Record
-            await supabase.from('transactions').insert({
-                sender_id: zimBetAccount.user_id,
-                receiver_id: recipient.id,
-                amount: amount,
-                description: `ZimBet withdrawal`,
-                status: 'completed'
+            // SECURE ATOMIC TRANSACTION (RPC)
+            // This prevents "lost money" if network fails mid-transaction
+            const { error } = await supabase.rpc('transfer_credits', {
+                recipient_username: cleanUser,
+                amount: amount
             })
+
+            if (error) throw error
 
             setMessage({ type: 'success', text: `Sent ${formatMoney(amount)} to @${cleanUser}` })
             await refreshAccount()
             setWithdrawAmount(10)
             setZimpayUsername('')
         } catch (e: any) {
+            console.error('Withdrawal failed:', e)
             setMessage({ type: 'error', text: e.message || 'Error processing withdrawal' })
         } finally {
             setLoading(false)

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import './Landing.css'
 
@@ -8,7 +8,7 @@ export function Landing() {
   const { user, zimBetAccount, loading } = useAuth()
   const navigate = useNavigate()
 
-  // Particle System
+  // Premium Animated Gradient Mesh Background (WebGL-style using Canvas 2D)
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -18,59 +18,50 @@ export function Landing() {
     let width = canvas.width = window.innerWidth
     let height = canvas.height = window.innerHeight
 
-    const particles: { x: number, y: number, vx: number, vy: number, size: number, alpha: number }[] = []
-    const particleCount = Math.min(80, (width * height) / 15000)
+    // Gradient Blob configuration
+    const blobs = [
+      { x: 0.2, y: 0.3, radius: 0.4, color: 'rgba(226, 51, 51, 0.3)', vx: 0.0003, vy: 0.0002 },
+      { x: 0.8, y: 0.2, radius: 0.35, color: 'rgba(251, 191, 36, 0.2)', vx: -0.0002, vy: 0.0003 },
+      { x: 0.5, y: 0.7, radius: 0.45, color: 'rgba(139, 92, 246, 0.25)', vx: 0.0002, vy: -0.0002 },
+      { x: 0.1, y: 0.8, radius: 0.3, color: 'rgba(16, 185, 129, 0.15)', vx: 0.0003, vy: -0.0001 },
+    ]
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.4,
-        vy: (Math.random() - 0.5) * 0.4,
-        size: Math.random() * 2 + 0.5,
-        alpha: Math.random() * 0.4 + 0.1
-      })
-    }
-
+    let time = 0
     let animationFrame: number
 
     const render = () => {
-      ctx.fillStyle = '#0f172a'
+      time += 1
+
+      // Dark base
+      ctx.fillStyle = '#0a0a12'
       ctx.fillRect(0, 0, width, height)
 
-      // Draw connections
-      ctx.strokeStyle = 'rgba(226, 51, 51, 0.04)'
-      ctx.lineWidth = 1
+      // Draw gradient blobs with organic movement
+      blobs.forEach((blob, i) => {
+        // Organic sine wave movement
+        const offsetX = Math.sin(time * 0.01 + i) * 0.05
+        const offsetY = Math.cos(time * 0.01 + i * 1.5) * 0.05
 
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i]
-        p.x += p.vx
-        p.y += p.vy
+        const x = (blob.x + offsetX) * width
+        const y = (blob.y + offsetY) * height
+        const radius = blob.radius * Math.min(width, height)
 
-        if (p.x < 0) p.x = width
-        if (p.x > width) p.x = 0
-        if (p.y < 0) p.y = height
-        if (p.y > height) p.y = 0
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius)
+        gradient.addColorStop(0, blob.color)
+        gradient.addColorStop(1, 'transparent')
 
-        ctx.fillStyle = `rgba(226, 51, 51, ${p.alpha})`
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
-        ctx.fill()
+        ctx.fillStyle = gradient
+        ctx.fillRect(0, 0, width, height)
+      })
 
-        // Connect nearby
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j]
-          const dx = p.x - p2.x
-          const dy = p.y - p2.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist < 120) {
-            ctx.beginPath()
-            ctx.moveTo(p.x, p.y)
-            ctx.lineTo(p2.x, p2.y)
-            ctx.stroke()
-          }
-        }
+      // Add subtle noise/grain overlay
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.01)'
+      for (let i = 0; i < 100; i++) {
+        const nx = Math.random() * width
+        const ny = Math.random() * height
+        ctx.fillRect(nx, ny, 1, 1)
       }
+
       animationFrame = requestAnimationFrame(render)
     }
 
@@ -87,6 +78,45 @@ export function Landing() {
       window.removeEventListener('resize', resize)
     }
   }, [])
+
+  // Animated Jackpot Counter
+  const [jackpotAmount, setJackpotAmount] = useState(0)
+  const targetJackpot = 125847
+
+  useEffect(() => {
+    let current = 0
+    const duration = 2000
+    const step = targetJackpot / (duration / 16)
+
+    const animateJackpot = () => {
+      current += step
+      if (current < targetJackpot) {
+        setJackpotAmount(Math.floor(current))
+        requestAnimationFrame(animateJackpot)
+      } else {
+        setJackpotAmount(targetJackpot)
+      }
+    }
+
+    // Start animation after a short delay
+    const timer = setTimeout(animateJackpot, 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Responsible Gambling Modal
+  const [showGamblingModal, setShowGamblingModal] = useState(false)
+
+  useEffect(() => {
+    const hasSeenModal = localStorage.getItem('zimbet_gambling_disclaimer')
+    if (!hasSeenModal) {
+      setShowGamblingModal(true)
+    }
+  }, [])
+
+  const acceptGamblingDisclaimer = () => {
+    localStorage.setItem('zimbet_gambling_disclaimer', 'accepted')
+    setShowGamblingModal(false)
+  }
 
   // Handle card click - redirect appropriately based on auth state
   const handleGameClick = (gameLink: string) => {
@@ -140,9 +170,9 @@ export function Landing() {
             </div>
 
             <div className="hero-stats">
-              <div className="stat">
-                <span className="val">6</span>
-                <span className="lbl">Games</span>
+              <div className="stat jackpot-counter">
+                <span className="val">${jackpotAmount.toLocaleString()}</span>
+                <span className="lbl">Total Jackpot</span>
               </div>
               <div className="divider"></div>
               <div className="stat">
@@ -257,6 +287,36 @@ export function Landing() {
           </div>
         </footer>
       </div>
+
+      {/* Responsible Gambling Modal */}
+      {showGamblingModal && (
+        <div className="gambling-modal-overlay">
+          <div className="gambling-modal">
+            <div className="gambling-modal-icon">⚠️</div>
+            <h2>Bet Responsibly</h2>
+            <p>
+              ZimBet is a <strong>simulation game</strong> for entertainment purposes only.
+              No real money is involved.
+            </p>
+            <p className="gambling-warning">
+              If this were real gambling, remember: Gambling can be addictive.
+              Please play responsibly and within your means.
+            </p>
+            <ul className="gambling-tips">
+              <li>✓ Set a budget before you play</li>
+              <li>✓ Never chase losses</li>
+              <li>✓ Take regular breaks</li>
+              <li>✓ Gambling should be fun, not a way to make money</li>
+            </ul>
+            <button onClick={acceptGamblingDisclaimer} className="btn btn-primary">
+              I Understand - Continue
+            </button>
+            <p className="gambling-age">
+              🔞 You must be 18+ to access gambling content
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

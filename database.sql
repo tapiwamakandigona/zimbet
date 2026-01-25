@@ -93,3 +93,87 @@ $$ LANGUAGE plpgsql;
 
 -- Enable realtime for matches
 ALTER PUBLICATION supabase_realtime ADD TABLE zimbet_matches;
+
+-- =============================================
+-- FORENSIC AUDIT UPDATES (Security & Integrity)
+-- =============================================
+
+-- 1. Schema Updates for Granular Stats
+ALTER TABLE zimbet_accounts 
+ADD COLUMN IF NOT EXISTS total_wagered DECIMAL(10, 2) DEFAULT 0,
+ADD COLUMN IF NOT EXISTS total_won DECIMAL(10, 2) DEFAULT 0;
+
+-- 2. Transaction Table for Audit Trail
+CREATE TABLE IF NOT EXISTS transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  sender_id UUID REFERENCES auth.users(id),
+  receiver_id UUID REFERENCES zimbet_accounts(id), -- Receiver is profiled via zimbet_accounts
+  amount DECIMAL(10, 2) NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'completed',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Secure Atomic Transfer (Wallet.tsx Fix)
+CREATE OR REPLACE FUNCTION transfer_credits(
+  recipient_username text, 
+  amount int
+) returns void as $$
+declare
+  sender_id uuid := auth.uid();
+  recipient_account_id uuid;
+begin
+  -- Find Recipient
+  select id into recipient_account_id from zimbet_accounts where username = recipient_username;
+  if recipient_account_id is null then raise exception 'User not found'; end if;
+
+  -- Deduct (Atomic Check & Update)
+  update zimbet_accounts 
+  set balance = balance - amount 
+  where user_id = sender_id and balance >= amount;
+  
+  if not found then raise exception 'Insufficient balance'; end if;
+
+  -- Credit (Atomic)
+  update zimbet_accounts 
+  set balance = balance + amount 
+  where id = recipient_account_id;
+
+  -- Audit Log
+  insert into transactions (sender_id, receiver_id, amount, description, status) 
+  values (sender_id, recipient_account_id, amount, 'ZimBet P2P Transfer', 'completed');
+end;
+$$ language plpgsql security definer;
+
+-- 4. Secure Game Processing (Mines.tsx Fix)
+CREATE OR REPLACE FUNCTION process_game_result(
+  game_id text,
+  bet_amount int,
+  multiplier float,
+  is_win boolean
+) returns json as $$
+declare
+  user_idx uuid := auth.uid();
+  winnings decimal(10,2) := 0;
+begin
+  -- Validate
+  if bet_amount < 0 then raise exception 'Negative bet'; end if;
+
+  -- Server-Side Winnings Calc
+  if is_win then
+    winnings := floor(bet_amount * multiplier);
+    update zimbet_accounts set balance = balance + winnings where user_id = user_idx;
+  end if;
+  
+  -- Update Stats
+  update zimbet_accounts 
+  set total_wagered = total_wagered + bet_amount,
+      total_won = total_won + winnings,
+      total_earnings = total_earnings + (winnings - bet_amount),
+      total_wins = total_wins + (CASE WHEN is_win THEN 1 ELSE 0 END),
+      total_losses = total_losses + (CASE WHEN is_win THEN 0 ELSE 1 END)
+  where user_id = user_idx;
+
+  return json_build_object('new_balance', (select balance from zimbet_accounts where user_id = user_idx));
+end;
+$$ language plpgsql security definer;

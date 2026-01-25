@@ -1,4 +1,4 @@
-import { secureRandom, generateSeed } from './gameEngine'
+import { generateSeed } from './gameEngine'
 
 export interface AviatorState {
     roundId: string
@@ -100,7 +100,7 @@ const WAITING_TIME_MS = 5000
 
 // State Management
 let currentRound: AviatorState | null = null
-let nextRoundStart = 0
+// nextRoundStart removed - not needed
 
 export function getCurrentRound(now = Date.now()): AviatorState {
     // If no round or current round totally finished (including post-crash delay), start next

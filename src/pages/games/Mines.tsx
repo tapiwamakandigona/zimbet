@@ -81,13 +81,13 @@ export function Mines() {
             soundManager.playLoss()
 
             if (zimBetAccount) {
-                supabase.from('zimbet_accounts')
-                    .update({
-                        total_losses: zimBetAccount.total_losses + 1,
-                        total_earnings: zimBetAccount.total_earnings - betAmount
-                    })
-                    .eq('id', zimBetAccount.id)
-                    .then(() => refreshAccount())
+                // SECURE: Register loss on server
+                supabase.rpc('process_game_result', {
+                    game_id: 'mines',
+                    bet_amount: betAmount,
+                    multiplier: 0,
+                    is_win: false
+                }).then(() => refreshAccount())
             }
 
             newTiles[index] = 'mine'
@@ -119,14 +119,17 @@ export function Mines() {
         const winnings = potentialWin
 
         if (zimBetAccount) {
-            await supabase
-                .from('zimbet_accounts')
-                .update({
-                    balance: zimBetAccount.balance + winnings,
-                    total_wins: zimBetAccount.total_wins + 1,
-                    total_earnings: zimBetAccount.total_earnings + (winnings - betAmount)
-                })
-                .eq('id', zimBetAccount.id)
+            // SECURE: Calculate winnings on server via RPC
+            const { error } = await supabase.rpc('process_game_result', {
+                game_id: 'mines',
+                bet_amount: betAmount,
+                multiplier: currentMultiplier,
+                is_win: true
+            })
+
+            if (error) {
+                console.error("Critical Error processing win:", error)
+            }
         }
 
         // Reveal mines for transparency

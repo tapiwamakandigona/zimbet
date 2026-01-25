@@ -588,3 +588,407 @@ canvas {
         transform: rotate(360deg);
     }
 }
+
+/* --- MISSING STYLES FOR AVIATOR --- */
+
+/* Multiplier Overlay */
+.multiplier-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.waiting-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.countdown-ring {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid rgba(239, 68, 68, 0.2);
+    border-top-color: var(--color-action);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: spin 1s linear infinite;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(239, 68, 68, 0.3);
+}
+
+.countdown-ring span {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--color-action);
+    font-family: var(--font-mono);
+}
+
+.waiting-text {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-text-base);
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.crash-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.crash-text {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--color-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.6;
+}
+
+.crash-mult {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--color-action);
+    text-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+    font-family: var(--font-mono);
+}
+
+.flying-mult {
+    font-size: clamp(4rem, 12vw, 8rem);
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 0 60px rgba(239, 68, 68, 0.5);
+    letter-spacing: -2px;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
+}
+
+.cashout-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(16, 185, 129, 0.15);
+    backdrop-filter: blur(8px);
+    z-index: 20;
+    gap: 12px;
+}
+
+.win-label {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--color-trust);
+    letter-spacing: 3px;
+    text-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+}
+
+.win-amount {
+    font-size: 4rem;
+    font-weight: 900;
+    color: var(--color-trust);
+    text-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
+    font-family: var(--font-mono);
+}
+
+.win-mult {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: var(--font-mono);
+}
+
+/* Betting Sidebar */
+.betting-sidebar {
+    width: 300px;
+    background: var(--color-bg-surface);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+@media (max-width: 900px) {
+    .betting-sidebar {
+        width: 100%;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+}
+
+.bet-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.amount-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.adj-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.adj-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.amount-input {
+    flex: 1;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    font-family: var(--font-mono);
+    padding: 0 12px;
+}
+
+.amount-input:focus {
+    outline: none;
+    border-color: var(--color-trust);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+.quick-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--color-text-muted);
+    padding: 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 700;
+    transition: all 0.2s;
+}
+
+.quick-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.error-msg {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--color-action);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.cashout-btn {
+    width: 100%;
+    height: 80px;
+    background: var(--color-wealth);
+    border: none;
+    border-radius: 12px;
+    color: #422006;
+    font-size: 1.5rem;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 8px 0 #d97706, 0 15px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cashout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 0 #d97706, 0 20px 30px rgba(0, 0, 0, 0.4);
+}
+
+.cashout-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 4px 0 #d97706, 0 8px 10px rgba(0, 0, 0, 0.3);
+}
+
+.cashout-value {
+    font-size: 1rem;
+    font-weight: 700;
+    opacity: 0.9;
+    font-family: var(--font-mono);
+}
+
+.queued-btn {
+    width: 100%;
+    height: 80px;
+    background: rgba(239, 68, 68, 0.2);
+    border: 2px solid var(--color-action);
+    border-radius: 12px;
+    color: var(--color-action);
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.queued-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.cancel-hint {
+    font-size: 0.75rem;
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* Fairness Modal */
+.fairness-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+}
+
+.fairness-modal {
+    background: var(--color-bg-surface);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.fairness-modal h2 {
+    color: white;
+    margin-bottom: 16px;
+    font-size: 1.5rem;
+}
+
+.fairness-modal p {
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+    line-height: 1.6;
+}
+
+.seed-info {
+    margin-bottom: 16px;
+}
+
+.seed-info label {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.seed-info input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+}
+
+.seed-info input:focus {
+    outline: none;
+    border-color: var(--color-trust);
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.fairness-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.fairness-actions button {
+    flex: 1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.fairness-actions button:first-child {
+    background: var(--color-trust);
+    border: none;
+    color: white;
+}
+
+.fairness-actions button:first-child:hover {
+    background: #059669;
+}
+
+.fairness-actions button:last-child {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-muted);
+}
+
+.fairness-actions button:last-child:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.amt-col,
+.mult-col {
+    flex: 1;
+    text-align: center;
+}

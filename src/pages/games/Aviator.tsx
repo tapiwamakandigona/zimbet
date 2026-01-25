@@ -132,8 +132,8 @@ export function Aviator() {
         return false
     }
 
-    // Helper to execute a refund transaction
-    const executeRefundTransaction = async (amount: number) => {
+    // Helper to execute a refund transaction (reserved for future use)
+    const _executeRefundTransaction = async (amount: number) => {
         if (!zimBetAccountRef.current) return false
 
         const { error } = await supabase.from('zimbet_accounts')
@@ -458,130 +458,109 @@ export function Aviator() {
                         </div>
                     </div>
 
-                    {/* Fairness Modal */}
-                    {showFairness && (
-                        <div className="waiting-overlay" style={{ background: 'rgba(0,0,0,0.9)', zIndex: 50 }}>
-                            <div className="control-panel" style={{ width: '300px' }}>
-                                <div className="bet-header">Provably Fair Settings</div>
-                                <div style={{ fontSize: '0.8rem', color: '#999', margin: '10px 0' }}>
-                                    Your Client Seed is combined with our Server Seed to generate results. Change it to verify fairness.
-                                </div>
-                                <div className="bet-input-row">
-                                    <label style={{ fontSize: '0.7rem' }}>Client Seed</label>
-                                    <input
-                                        value={clientSeedInput}
-                                        onChange={(e) => setClientSeedInput(e.target.value)}
-                                        style={{ background: '#000', border: '1px solid #333', padding: '8px', color: 'white' }}
-                                    />
-                                </div>
-                                <div className="auto-controls">
-                                    <button className="auto-btn" onClick={saveClientSeed} style={{ background: '#27ae60' }}>SAVE</button>
-                                    <button className="auto-btn" onClick={() => setShowFairness(false)} style={{ background: '#c0392b' }}>CLOSE</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                    {/* Game Canvas */}
                     <div className="canvas-wrapper" ref={containerRef}>
                         <canvas ref={canvasRef} />
-
-                        {gameState?.phase === 'waiting' && (
-                            <div className="waiting-overlay">
-                                <div className="loader-spinner"></div>
-                                <div className="waiting-text">NEXT ROUND IN</div>
-                                <div className="big-countdown">{nextRoundTime.toFixed(1)}s</div>
-                                <div className="progress-bar">
-                                    <div className="progress-fill" style={{ width: `${(nextRoundTime / 5) * 100}%` }}></div>
+                        <div className="multiplier-overlay">
+                            {gameState?.phase === 'waiting' ? (
+                                <div className="waiting-state">
+                                    <div className="countdown-ring">
+                                        <span>{(nextRoundTime || 0).toFixed(1)}s</span>
+                                    </div>
+                                    <span className="waiting-text">WAITING FOR NEXT ROUND</span>
                                 </div>
-                            </div>
-                        )}
-
-                        {gameState?.phase === 'flying' && (
-                            <div className="flying-stats">
-                                <div className="big-multiplier">{multiplier.toFixed(2)}x</div>
-                            </div>
-                        )}
-
-                        {gameState?.phase === 'crashed' && (
-                            <div className="crashed-overlay">
-                                <div className="flew-away">FLEW AWAY!</div>
-                                <div className="crashed-mult">{multiplier.toFixed(2)}x</div>
+                            ) : gameState?.phase === 'crashed' ? (
+                                <div className="crash-state">
+                                    <span className="crash-text">FLEW AWAY!</span>
+                                    <span className="crash-mult">{gameState.crashPoint.toFixed(2)}x</span>
+                                </div>
+                            ) : (
+                                <span className="flying-mult">{multiplier.toFixed(2)}x</span>
+                            )}
+                        </div>
+                        {cashedOut && (
+                            <div className="cashout-overlay">
+                                <span className="win-label">YOU WON</span>
+                                <span className="win-amount">{formatMoney(winAmount)}</span>
+                                <span className="win-mult">@ {multiplier.toFixed(2)}x</span>
                             </div>
                         )}
                     </div>
+                </div>
 
-                    <div className="controls-area">
-                        <div className="control-panel">
-                            {errorMsg && <div className="bet-error">{errorMsg}</div>}
-                            <div className="bet-input-row">
-                                <div className="counter">
-                                    <button onClick={() => setBetAmount(b => Math.max(1, b - 1))}>−</button>
-                                    <input value={betAmount} readOnly />
-                                    <button onClick={() => setBetAmount(b => b + 1)}>+</button>
-                                </div>
-                                <div className="quick-select">
-                                    {[1, 5, 10, 50].map(n => (
-                                        <button key={n} onClick={() => setBetAmount(n)}>${n}</button>
-                                    ))}
-                                </div>
-                            </div>
-
-                            <div className="main-action">
-                                {activeBet ? (
-                                    cashedOut ? (
-                                        <button className="bet-btn success" disabled>
-                                            <div className="btn-label">CASHED OUT</div>
-                                            <div className="btn-val">{formatMoney(winAmount)}</div>
-                                        </button>
-                                    ) : (
-                                        gameState?.phase === 'waiting' ? (
-                                            <button className="bet-btn cancel" onClick={async () => {
-                                                const amount = betAmountRef.current
-                                                const success = await executeRefundTransaction(amount)
-                                                if (success) {
-                                                    setActiveBet(false)
-                                                    broadcastBet(-amount)
-                                                }
-                                            }}>
-                                                <div className="btn-label">CANCEL BET</div>
-                                                <div className="btn-sub">REFUND</div>
-                                            </button>
-                                        ) : (
-                                            <button className="bet-btn cashout" onClick={handleCashout}>
-                                                <div className="btn-label">CASH OUT</div>
-                                                <div className="btn-val">{formatMoney(Math.floor(betAmount * multiplier))}</div>
-                                            </button>
-                                        )
-                                    )
-                                ) : (
-                                    nextRoundBet ? (
-                                        <button className="bet-btn cancel" onClick={cancelBet}>
-                                            <div className="btn-label">CANCEL</div>
-                                            <div className="btn-sub">NEXT ROUND</div>
-                                        </button>
-                                    ) : (
-                                        <button
-                                            className="bet-btn place"
-                                            onClick={handlePlaceBet}
-                                            disabled={!zimBetAccount || betAmount > zimBetAccount.balance}
-                                        >
-                                            <div className="btn-label">BET</div>
-                                            <div className="btn-val">${betAmount}</div>
-                                        </button>
-                                    )
-                                )}
-                            </div>
+                {/* RIGHT SIDEBAR - Betting Panel */}
+                <div className="betting-sidebar">
+                    <div className="bet-panel">
+                        <div className="amount-row">
+                            <button className="adj-btn" onClick={() => setBetAmount(Math.max(1, betAmount - 10))}>-</button>
+                            <input
+                                type="number"
+                                value={betAmount}
+                                onChange={(e) => setBetAmount(Math.max(1, parseInt(e.target.value) || 0))}
+                                className="amount-input"
+                            />
+                            <button className="adj-btn" onClick={() => setBetAmount(betAmount + 10)}>+</button>
+                        </div>
+                        <div className="quick-amounts">
+                            {[10, 25, 50, 100, 250, 500].map(amt => (
+                                <button key={amt} onClick={() => setBetAmount(amt)} className="quick-btn">{amt}</button>
+                            ))}
                         </div>
 
-                        <div className="control-panel secondary-panel">
-                            <div className="bet-header">Network Status</div>
-                            <div style={{ color: '#2ecc71', fontSize: '0.8rem', marginTop: '10px' }}>
-                                ● Live Sync Active
-                            </div>
-                        </div>
+                        {errorMsg && <div className="error-msg">{errorMsg}</div>}
+
+                        {!activeBet && !nextRoundBet ? (
+                            <button className="bet-btn" onClick={handlePlaceBet}>
+                                BET {formatMoney(betAmount)}
+                            </button>
+                        ) : activeBet && !cashedOut ? (
+                            <button className="cashout-btn" onClick={handleCashout}>
+                                CASH OUT<br />
+                                <span className="cashout-value">{formatMoney(Math.floor(betAmount * multiplier))}</span>
+                            </button>
+                        ) : nextRoundBet ? (
+                            <button className="queued-btn" onClick={cancelBet}>
+                                QUEUED: {formatMoney(betAmount)}<br />
+                                <span className="cancel-hint">Tap to cancel</span>
+                            </button>
+                        ) : (
+                            <button className="bet-btn" onClick={handlePlaceBet}>
+                                BET NEXT ROUND
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Fairness Modal */}
+            {showFairness && (
+                <div className="fairness-overlay" onClick={toggleFairness}>
+                    <div className="fairness-modal" onClick={e => e.stopPropagation()}>
+                        <h2>Provably Fair</h2>
+                        <p>Each round's outcome is determined by a cryptographic hash combining server and client seeds.</p>
+
+                        <div className="seed-info">
+                            <label>Server Seed (Hidden)</label>
+                            <input readOnly value="************" />
+                        </div>
+
+                        <div className="seed-info">
+                            <label>Your Client Seed</label>
+                            <input
+                                value={clientSeedInput}
+                                onChange={(e) => setClientSeedInput(e.target.value)}
+                                placeholder="Enter your seed"
+                            />
+                        </div>
+
+                        <div className="fairness-actions">
+                            <button onClick={saveClientSeed}>Save Seed</button>
+                            <button onClick={toggleFairness}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
+
