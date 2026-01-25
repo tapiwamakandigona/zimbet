@@ -93,19 +93,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Add zm- prefix to avoid conflicts with ZimPay usernames
         const prefixedUsername = `zm-${username.toLowerCase().replace(/^zm-/, '')}`
 
+        const newAccount = {
+            user_id: user.id,
+            username: prefixedUsername,
+            balance: 100, // Starting bonus for testing
+            total_wins: 0,
+            total_losses: 0,
+            total_earnings: 0
+        }
+
         const { error } = await supabase
             .from('zimbet_accounts')
-            .insert({
-                user_id: user.id,
-                username: prefixedUsername,
-                balance: 100, // Starting bonus for testing
-                total_wins: 0,
-                total_losses: 0,
-                total_earnings: 0
-            })
+            .insert(newAccount)
 
         if (!error) {
+            // IMMEDIATE OPTIMISTIC UPDATE
+            // This prevents the "redirect back to setup" loop
+            setZimBetAccount(newAccount as any)
+
+            // Then fetch properly to be sure
             await fetchZimBetAccount(user.id)
+        } else {
+            // Handle "already exists" case gracefully
+            // If it exists, we just fetch it and proceed as success
+            if (error.code === '23505') { // Unique violation
+                await fetchZimBetAccount(user.id)
+                return { error: null }
+            }
         }
 
         return { error: error as Error | null }
