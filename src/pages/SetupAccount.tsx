@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import './SetupAccount.css'
 
 export function SetupAccount() {
-    const { createZimBetAccount, zimBetAccount } = useAuth()
+    const { createZimBetAccount, zimBetAccount, signOut } = useAuth()
     const navigate = useNavigate()
     const [username, setUsername] = useState('')
     const [loading, setLoading] = useState(false)
@@ -96,6 +96,16 @@ export function SetupAccount() {
 
                 <div className="setup-footer">
                     <p>By continuing, you agree to play responsibly 🎮</p>
+                    <button
+                        onClick={() => {
+                            signOut()
+                            navigate('/login')
+                        }}
+                        className="text-gray-500 text-sm mt-4 hover:text-white underline bg-transparent border-none cursor-pointer"
+                        style={{ marginTop: '20px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                    >
+                        Not you? Sign Out
+                    </button>
                 </div>
             </div>
         </div>
