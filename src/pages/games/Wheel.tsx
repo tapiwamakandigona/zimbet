@@ -40,35 +40,46 @@ export function Wheel() {
             .update({ balance: Math.floor(zimBetAccount.balance - wholeBet) })
             .eq('id', zimBetAccount.id)
 
-        // Get result
+        // Get result from probability engine
         const spinResult = spinWheel()
         setResult(spinResult) // Set early so it exists for transitionEnd
 
-        // Calculate rotation to land on winning segment
-        const segmentIndex = WHEEL_SEGMENTS.findIndex(s => s.multiplier === spinResult.multiplier)
+        // Find which segment index won
+        const winningIndex = WHEEL_SEGMENTS.findIndex(s => s.multiplier === spinResult.multiplier)
 
-        // The wheel starts with segment 0 at the top (pointer position)
-        // When we rotate the wheel clockwise by X degrees, the segment at position X moves under the pointer
-        // So to make segment N land under the pointer, we need to rotate by: N * SEGMENT_ANGLE
+        /**
+         * WHEEL ROTATION LOGIC:
+         * 
+         * The wheel is drawn with segment 0 at the TOP (12 o'clock).
+         * The pointer is fixed at the TOP.
+         * Segments go clockwise: 0, 1, 2, 3... 
+         * 
+         * Segment N starts at angle: N * SEGMENT_ANGLE (clockwise from top)
+         * Segment N ends at angle: (N + 1) * SEGMENT_ANGLE
+         * 
+         * When we rotate the wheel clockwise by X degrees:
+         * - The segment that was at position X now moves to position 0 (top)
+         * 
+         * To make segment N land at the top (under the pointer):
+         * - We need to rotate by: 360 - (N * SEGMENT_ANGLE + offset)
+         * - Where offset is a random position within the segment (to avoid edges)
+         * 
+         * Add multiple full rotations (360° × N) for visual spinning effect.
+         */
 
-        // Add random offset within the segment (avoid edges - stay within 20%-80% of segment)
-        const minOffset = SEGMENT_ANGLE * 0.2
-        const maxOffset = SEGMENT_ANGLE * 0.8
-        const randomOffset = minOffset + Math.random() * (maxOffset - minOffset)
+        // Random offset within the segment (20%-80% to avoid edges)
+        const segmentStart = winningIndex * SEGMENT_ANGLE
+        const safeMargin = SEGMENT_ANGLE * 0.2  // 20% from edges
+        const randomInSegment = safeMargin + Math.random() * (SEGMENT_ANGLE - 2 * safeMargin)
 
-        // Target position: rotate so the segment center is at top
-        // Segment N starts at angle N*SEGMENT_ANGLE from top
-        // To bring it to top, rotate by -(N*SEGMENT_ANGLE + half_segment) but we want center so add random offset
-        const segmentStartAngle = segmentIndex * SEGMENT_ANGLE
+        // Target angle from top where the winning position is
+        const targetAngle = segmentStart + randomInSegment
 
-        // We rotate clockwise (positive degrees), so to bring segment N to top:
-        // Full rotations + the angle needed
-        const extraSpins = 5 * 360 // 5 full rotations for effect
+        // To land on this angle, rotate wheel by (360 - targetAngle) + full spins
+        const fullSpins = 5 * 360  // 5 full rotations
+        const spinAmount = 360 - targetAngle + fullSpins
 
-        // Calculate final rotation: go to segment start + random offset within segment
-        const finalRotation = extraSpins + segmentStartAngle + randomOffset
-
-        setRotation(finalRotation)
+        setRotation(spinAmount)
     }
 
     const handleSpinComplete = async () => {
