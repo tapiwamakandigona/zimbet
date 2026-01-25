@@ -44,16 +44,29 @@ export function Wheel() {
         const spinResult = spinWheel()
         setResult(spinResult) // Set early so it exists for transitionEnd
 
-        // Calculate rotation
+        // Calculate rotation to land on winning segment
         const segmentIndex = WHEEL_SEGMENTS.findIndex(s => s.multiplier === spinResult.multiplier)
-        // Add extra spins + stop at winning segment center
-        const extraSpins = 5 * 360
-        // Rotation needed to bring segment to top (pointer position)
-        const targetAngle = segmentIndex * SEGMENT_ANGLE
-        // Normalize current rotation to prevent accumulation issues
-        const currentRotation = rotation % 360;
-        // Add half segment to center, then offset for the segment being at top not right
-        const finalRotation = currentRotation + extraSpins + (360 - targetAngle) - (SEGMENT_ANGLE / 2)
+
+        // The wheel starts with segment 0 at the top (pointer position)
+        // When we rotate the wheel clockwise by X degrees, the segment at position X moves under the pointer
+        // So to make segment N land under the pointer, we need to rotate by: N * SEGMENT_ANGLE
+
+        // Add random offset within the segment (avoid edges - stay within 20%-80% of segment)
+        const minOffset = SEGMENT_ANGLE * 0.2
+        const maxOffset = SEGMENT_ANGLE * 0.8
+        const randomOffset = minOffset + Math.random() * (maxOffset - minOffset)
+
+        // Target position: rotate so the segment center is at top
+        // Segment N starts at angle N*SEGMENT_ANGLE from top
+        // To bring it to top, rotate by -(N*SEGMENT_ANGLE + half_segment) but we want center so add random offset
+        const segmentStartAngle = segmentIndex * SEGMENT_ANGLE
+
+        // We rotate clockwise (positive degrees), so to bring segment N to top:
+        // Full rotations + the angle needed
+        const extraSpins = 5 * 360 // 5 full rotations for effect
+
+        // Calculate final rotation: go to segment start + random offset within segment
+        const finalRotation = extraSpins + segmentStartAngle + randomOffset
 
         setRotation(finalRotation)
     }
@@ -98,12 +111,6 @@ export function Wheel() {
 
         setIsSpinning(false)
         refreshAccount()
-
-        // Normalize rotation to 0-360 after animation completes
-        // This prevents accumulation issues across multiple spins
-        setTimeout(() => {
-            setRotation(prev => prev % 360)
-        }, 100)
     }
 
     return (
