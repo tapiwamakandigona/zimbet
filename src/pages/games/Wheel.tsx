@@ -54,32 +54,44 @@ export function Wheel() {
          * The pointer is fixed at the TOP.
          * Segments go clockwise: 0, 1, 2, 3... 
          * 
-         * Segment N starts at angle: N * SEGMENT_ANGLE (clockwise from top)
-         * Segment N ends at angle: (N + 1) * SEGMENT_ANGLE
+         * Key insight: CSS transition animates from current rotation to new rotation.
+         * We must ACCUMULATE rotations to get visible spin animation.
          * 
-         * When we rotate the wheel clockwise by X degrees:
-         * - The segment that was at position X now moves to position 0 (top)
-         * 
-         * To make segment N land at the top (under the pointer):
-         * - We need to rotate by: 360 - (N * SEGMENT_ANGLE + offset)
-         * - Where offset is a random position within the segment (to avoid edges)
-         * 
-         * Add multiple full rotations (360° × N) for visual spinning effect.
+         * To land on segment N:
+         * 1. Find where the wheel currently is (currentRotation % 360)
+         * 2. Calculate the target position for segment N
+         * 3. Add enough rotation to get there PLUS 5 full spins
          */
 
         // Random offset within the segment (20%-80% to avoid edges)
-        const segmentStart = winningIndex * SEGMENT_ANGLE
-        const safeMargin = SEGMENT_ANGLE * 0.2  // 20% from edges
+        const safeMargin = SEGMENT_ANGLE * 0.2
         const randomInSegment = safeMargin + Math.random() * (SEGMENT_ANGLE - 2 * safeMargin)
 
-        // Target angle from top where the winning position is
-        const targetAngle = segmentStart + randomInSegment
+        // The winning segment starts at this angle from top
+        const segmentStartAngle = winningIndex * SEGMENT_ANGLE
 
-        // To land on this angle, rotate wheel by (360 - targetAngle) + full spins
-        const fullSpins = 5 * 360  // 5 full rotations
-        const spinAmount = 360 - targetAngle + fullSpins
+        // Target landing position (where pointer should point within the segment)
+        const targetPosition = segmentStartAngle + randomInSegment
 
-        setRotation(spinAmount)
+        // Current position of the wheel (normalized to 0-360)
+        const currentPos = rotation % 360
+
+        // How much we need to rotate to get from current position to target
+        // When wheel rotates by X, position X ends up at top
+        // So to land at targetPosition, we rotate by (360 - targetPosition) from 0
+        // But we're at currentPos, so we need: (360 - targetPosition - currentPos) mod 360
+        let neededRotation = (360 - targetPosition) - currentPos
+
+        // Ensure positive rotation
+        if (neededRotation < 0) neededRotation += 360
+
+        // Add 5 full spins for visual effect
+        const fullSpins = 5 * 360
+
+        // Final rotation = current + full spins + adjustment to land correctly
+        const finalRotation = rotation + fullSpins + neededRotation
+
+        setRotation(finalRotation)
     }
 
     const handleSpinComplete = async () => {
