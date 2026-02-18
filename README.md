@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# ZimBet - Rock Paper Scissors Betting Game
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A fun, interactive betting game built with React, TypeScript, and Supabase. Play Rock Paper Scissors with physics-powered animations and track your wins.
 
-Currently, two official plugins are available:
+[![Play Now](https://img.shields.io/badge/Play_Now-Live_Demo-brightgreen?style=for-the-badge)](https://tapiwamakandigona.github.io/zimbet/)
+[![GitHub](https://img.shields.io/badge/GitHub-Source_Code-black?style=for-the-badge&logo=github)](https://github.com/tapiwamakandigona/zimbet)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+- **Rock Paper Scissors** with betting mechanics
+- **Physics Animations** powered by Matter.js
+- **Plinko Board** for bonus rounds
+- **Supabase Backend** for auth and data persistence
+- **PWA Support** with manifest and icons
+- **Mobile Responsive** touch-friendly UI
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Technology | Purpose |
+|------------|---------|
+| React 18 | UI components |
+| TypeScript | Type safety |
+| Supabase | Auth + database |
+| Matter.js | Physics engine |
+| Vite | Build tooling |
+| GitHub Pages | Hosting |
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/tapiwamakandigona/zimbet.git
+cd zimbet
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploy
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run deploy
 ```
+
+Deploys to GitHub Pages via the gh-pages branch.
+
+## Database Setup
+
+See [SUPABASE_SETUP.sql](./SUPABASE_SETUP.sql) for the database schema.
+
+---
+
+Built by [Tapiwa Makandigona](https://github.com/tapiwamakandigona)
