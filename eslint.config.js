@@ -24,7 +24,11 @@ export default defineConfig([
       "@typescript-eslint/no-use-before-define": "off",
       "no-empty": "warn",
       "react-hooks/exhaustive-deps": "warn",
-      "react-hooks/rules-of-hooks": "warn"
+      "react-hooks/rules-of-hooks": "warn",
+      "prefer-const": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "react-refresh/only-export-components": "warn"
     }
   },
 ])
