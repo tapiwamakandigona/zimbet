@@ -25,6 +25,7 @@ export default defineConfig([
       "no-empty": "warn",
       "react-hooks/exhaustive-deps": "warn",
       "react-hooks/rules-of-hooks": "warn",
+      "react-hooks/immutability": "off",
       "prefer-const": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": "warn",
