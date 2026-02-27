@@ -1,89 +1,103 @@
-# ZimBet - Casino Gaming Platform
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=ZimBet%20Casino%20Platform&fontSize=50&animation=fadeIn&fontAlignY=38&desc=Provably%20Fair%20React%20%26%20Supabase%20Gaming%20Engine&descAlignY=51&descAlign=62" />
+</div>
 
-[![Live Demo](https://img.shields.io/badge/Play_Now-Live-brightgreen?style=for-the-badge)](https://tapiwamakandigona.github.io/zimbet/)
-[![GitHub](https://img.shields.io/badge/Source-GitHub-black?style=for-the-badge&logo=github)](https://github.com/tapiwamakandigona/zimbet)
+<h1 align="center">React Casino Gaming Platform & Simulator</h1>
 
-A full-featured casino gaming platform with 6 provably fair games, real-time leaderboards, wallet system, and daily bonuses. Built with React, TypeScript, Supabase, and Matter.js physics.
+<div align="center">
+  <p><strong>A full-stack, provably-fair Web3-style gaming platform built with React, TypeScript, Supabase Realtime, and Matter.js.</strong></p>
+  
+  <p>
+    <a href="https://tapiwamakandigona.github.io/zimbet/"><img src="https://img.shields.io/badge/Live_Demo-Play_Now-0A66C2?style=for-the-badge&logo=safari&logoColor=white" alt="Live Demo" /></a>
+    <img src="https://img.shields.io/github/languages/top/tapiwamakandigona/zimbet?style=for-the-badge&color=blue" alt="Top Language" />
+    <img src="https://img.shields.io/github/last-commit/tapiwamakandigona/zimbet?style=for-the-badge&color=green" alt="Last Commit" />
+  </p>
+</div>
 
-## Games
+---
 
-| Game | Description | RTP |
+## ⚡ Why This Repository Exists
+
+If you are looking for an open-source architecture demonstrating **complex State Management in React**, **Real-time WebSockets via Supabase**, and **Physics-based HTML5 UI rendering**, this is the benchmark. ZimBet is a production-grade simulation of a modern online casino, implementing identical cryptographic "Provably Fair" algorithms used by tier-one platforms like Stake or Roobet.
+
+<br/>
+
+## 🎲 The Games (Provably Fair)
+
+| Game Engine | Technical Implementation | Mechanics |
 |------|-------------|-----|
-| **Aviator** | Cash out before the crash. Multiplier rises until it crashes. | 97% |
-| **Coinflip** | Heads or tails - classic 50/50. | 98% |
-| **Dice** | Roll under/over a target number. | 98% |
-| **Mines** | Navigate a grid, avoid mines. More tiles = bigger multiplier. | 97% |
-| **Plinko** | Drop a ball through pegs. Physics-based with Matter.js. | 97% |
-| **Wheel** | Spin the wheel for multipliers. | 96% |
+| **Aviator (Crash)** | Real-time exponential multiplier scaling on `requestAnimationFrame` | Cash out before the server crashes the multiplier. |
+| **Plinko** | Native HTML5 Canvas + `Matter.js` rigid body physics | Drop the ball through collision pegs to hit multipliers. |
+| **Mines** | Grid-state matrix with cryptographic hashing | Avoid the mines. The risk-to-reward ratio scales dynamically. |
+| **Coinflip** | True RNG boolean simulation | Heads or tails variant. |
+| **Dice** | Float generation (0-100) with client-side slider state | User-defined probability vs. payout calculations. |
+| **Wheel** | CSS variables + mathematical rotation interpolations | Spin to win defined multiplier segments. |
 
-## Features
+---
 
-- **Provably Fair** - Verifiable game outcomes using cryptographic hashing
-- **Real-Time Leaderboard** - Compete with other players
-- **Wallet System** - Deposit, withdraw, track balance
-- **Daily Bonuses** - Log in daily for free credits
-- **Sound Effects** - Immersive audio experience
-- **Mobile Responsive** - Full touch support
-- **Dark Theme** - Premium UI with smooth animations
-- **Authentication** - Secure account system via Supabase
+## 🛠️ Core Technology Stack
 
-## Tech Stack
+- **Frontend:** React 19, TypeScript, React Router 7
+- **Backend & Auth:** Supabase (PostgreSQL), JWT Authentication
+- **Real-Time Data:** Supabase Subscriptions (Live Player Leaderboards)
+- **Physics Engine:** Matter.js (2D rigid body physics for Plinko)
+- **Build Tooling:** Vite, ESLint, TypeScript Compiler
+- **Hosting:** GitHub Pages CI/CD Deployment Action
 
-| Technology | Purpose |
-|------------|---------|
-| React 19 | UI components |
-| TypeScript | Type safety |
-| React Router 7 | Client-side routing |
-| Supabase | Auth, database, real-time |
-| Matter.js | Physics engine (Plinko) |
-| Vite | Build tooling |
-| GitHub Pages | Hosting |
+---
 
-## Architecture
+## 🏗️ System Architecture
 
-```
-src/
-├── components/        # Shared UI (Wallet, Leaderboard, Toast, etc.)
-├── context/           # Auth context with Supabase
-├── lib/               # Game engines, audio, Supabase client
-│   ├── aviatorEngine.ts   # Aviator crash algorithm
-│   ├── gameEngine.ts      # Core game logic
-│   ├── audio.ts           # Sound manager
-│   └── supabase.ts        # Database client
-├── pages/
-│   ├── CasinoLobby.tsx    # Game selection
-│   ├── FeatureDashboard.tsx # Main dashboard
-│   ├── Landing.tsx         # Landing page
-│   ├── Login.tsx           # Authentication
-│   └── games/             # Individual game pages
-│       ├── Aviator.tsx
-│       ├── Coinflip.tsx
-│       ├── Dice.tsx
-│       ├── Mines.tsx
-│       ├── Plinko.tsx
-│       └── Wheel.tsx
-└── main.tsx
+Our platform strictly adheres to a modular, feature-based architecture to isolate game logic from the React UI lifecycle layer.
+
+```mermaid
+graph TD;
+    UI[React Interface] --> Provider[Supabase Auth Provider];
+    UI --> Engine[Game Engine Abstraction];
+    Engine --> Math[Provably Fair Cryptography Lib];
+    Engine --> Physics[Matter.js Simulator];
+    Provider --> DB[(Supabase PostgreSQL)];
+    DB -.->|WebSocket| Leaderboard[Real-Time Stats Sync];
 ```
 
-## Getting Started
+---
 
+## 🚀 Quick Start / Local Setup
+
+Want to run this casino locally? It's fully container-ready. 
+
+**1. Clone the repository**
 ```bash
 git clone https://github.com/tapiwamakandigona/zimbet.git
 cd zimbet
-npm install
+```
+
+**2. Install Dependencies**
+```bash
+npm ci
+```
+
+**3. Database Configuration**
+Execute the provided schema inside your Supabase SQL editor:
+`./SUPABASE_SETUP.sql`
+
+**4. Run the Development Server**
+```bash
 npm run dev
 ```
 
-## Database Setup
+---
 
-See [SUPABASE_SETUP.sql](./SUPABASE_SETUP.sql) for the complete database schema.
+## 🛡️ Security & Anti-Cheat
 
-## Deploy
+ZimBet enforces strict separation of concerns. While the UI visually represents game state, the underlying mathematical engines calculate loss/win scenarios independently to prevent client-side DOM manipulation or React Developer Tools hacking.
 
-```bash
-npm run deploy
-```
+*See [SECURITY.md](SECURITY.md) for full anti-cheat methodologies.*
 
-## License
+---
 
-MIT - See [LICENSE](./LICENSE)
+<div align="center">
+  <b>Built by <a href="https://github.com/tapiwamakandigona">Tapiwa Makandigona</a></b>
+  <br/>
+  <i>If you found this architecture helpful, please give it a ⭐ to help others find it!</i>
+</div>
