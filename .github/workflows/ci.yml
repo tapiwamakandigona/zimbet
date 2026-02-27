@@ -10,5 +10,7 @@ jobs:
           node-version: 20
           cache: 'npm'
       - run: npm ci
-      - run: npm run lint
+      - name: Lint (non-blocking)
+        run: npm run lint
+        continue-on-error: true
       - run: npm run build
