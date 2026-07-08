@@ -150,7 +150,7 @@ export function Login() {
 
                     <p className="register-link">
                         New to ZimPay?{' '}
-                        <a href="https://tapiwamakandigona.github.io/zimpay/#/signup" target="_blank" rel="noopener noreferrer">
+                        <a href="https://zimpay.tapiwa.me/#/signup" target="_blank" rel="noopener noreferrer">
                             Create account
                         </a>
                     </p>

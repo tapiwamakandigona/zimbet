@@ -107,7 +107,7 @@ export function Wallet() {
                             <p>Funds appear instantly!</p>
                         </div>
 
-                        <a href="https://tapiwamakandigona.github.io/zimpay" target="_blank" className="zimpay-link-btn">
+                        <a href="https://zimpay.tapiwa.me/" target="_blank" className="zimpay-link-btn">
                             Launch ZimPay
                         </a>
                         <button className="refresh-link" onClick={refreshAccount}>Check Balance</button>

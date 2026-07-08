@@ -164,7 +164,7 @@ export function Landing() {
               <Link to={getCtaLink()} className="btn btn-primary btn-lg glow">
                 <span>🚀</span> {getCtaText()}
               </Link>
-              <a href="https://tapiwamakandigona.github.io/zimpay/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg">
+              <a href="https://zimpay.tapiwa.me/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg">
                 Get ZimPay
               </a>
             </div>
@@ -273,7 +273,7 @@ export function Landing() {
               <div className="footer-col">
                 <h4>Quick Links</h4>
                 <Link to="/login">Login</Link>
-                <a href="https://tapiwamakandigona.github.io/zimpay/#/signup" target="_blank" rel="noopener noreferrer">Sign Up</a>
+                <a href="https://zimpay.tapiwa.me/#/signup" target="_blank" rel="noopener noreferrer">Sign Up</a>
               </div>
               <div className="footer-col">
                 <h4>Developer</h4>
