@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://tapiwamakandigona.github.io/zimbet/sitemap.xml
